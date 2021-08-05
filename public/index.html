@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+    <title>PB100 Weather Station</title>
+    <!-- Favicon-->
+    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
+    <!-- Core theme CSS (includes Bootstrap)-->
+    <link href="styles.css" rel="stylesheet"/>
+    <!-- load ajax, loaded locally -->
+    <script src="jquery.min.js"></script>
+</head>
+<body>
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar-->
+    <div class="border-end bg-white" id="sidebar-wrapper">
+        <div class="sidebar-heading border-bottom bg-primary text-white"><img src="PB100.png"/>PB100</div>
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-summary"><span
+                    data-feather="home"></span>Home</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-te"><span
+                    data-feather="thermometer"></span>Temperature</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wi"><span
+                    data-feather="wind"></span>Wind</a>
+            <!--
+                        <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wd"><span
+                                data-feather="compass"></span>Wind Direction</a>
+            -->
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-rh"><span
+                    data-feather="droplet"></span>RH</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-bp"><span
+                    data-feather="download-cloud"></span>Pressure</a>
+        </div>
+    </div>
+    <!-- Page content wrapper-->
+    <div id="page-content-wrapper">
+        <!-- Top navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="btn btn-outline-primary" id="sidebarToggle"><i data-feather="menu"></i></button>
+                <div class="d-flex">
+                    <div data-feather="clock"></div>
+                    <div id="latest_dt" class="navbar-heading bg-light"></div>
+                </div>
+            </div>
+        </nav>
+        <!-- Page content-->
+        <div id="main-body" class="container">
+            <!--        <div id="main-body">-->
+        </div>
+    </div>
+</div>
+<!-- Bootstrap core JS-->
+<script src="bootstrap.bundle.min.js"></script>
+<!-- Core theme JS-->
+<script src="scripts.js"></script>
+<!-- Icons -->
+<script src="feather.min.js"></script>
+<script>
+    feather.replace();
+</script>
+<script src="highcharts.js"></script>
+<script src="highcharts-more.js"></script>
+<script src="windbarb.js"></script>
+
+<script>
+    // Global variables
+    var charts = {};            // Dictionary of charts. The keys of the charts matches the id suffix of the element, matches
+    // the id of the channel in the webservice
+    var realtimeData = {};      // Dictionary of lists of instantaneous data capped to "n" max values.
+
+    var logChannelId = "";          // Currently displayed log channel ID
+
+    $(document).ready(function () {
+        // Automatically load the summary page
+        $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
+            // callback function
+            feather.replace();
+        });
+
+        /* Fast update timer, update current instantaneous reading */
+        var scantimer = setInterval(function () {
+            var xhttpTime = new XMLHttpRequest();
+            xhttpTime.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var status = JSON.parse(this.responseText);
+                    for (key in status) {
+                        if (status.hasOwnProperty(key)) {
+                            var id = "latest_" + key;
+                            if (document.getElementById(id) !== null) {
+                                document.getElementById(id).innerHTML = status[key];
+                            }
+                            var x = new Date(status["dt"]).getTime();
+                            var y = parseFloat(status[key]);
+
+                            // Update any charts
+                            if (key in charts) {
+                                var c = charts[key];
+                                c.series[0].addPoint([x, y], false, false, false);
+                                c.redraw(true);
+                            }
+
+                            // Update data cache
+                            if (!(key in realtimeData)) {
+                                realtimeData[key] = [];
+                            }
+                            var len = realtimeData[key].push([x, y]);
+                            if (len > 100) {
+                                realtimeData[key].shift();
+                            }
+                        }
+                    }
+                }
+            };
+            xhttpTime.open("GET", "/status", true);
+            xhttpTime.send();
+
+        }, 5000);
+
+        /* create event handler that loads content into main area when navigation link is clicked */
+        $('#link-summary').click(function () {
+            $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+        });
+        $('#link-te').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "te";
+        });
+        $('#link-wi').click(function () {
+            $('#main-body').load('logdatawind.html');
+            logChannelId = "wi";
+        });
+        $('#link-rh').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "rh";
+        });
+        $('#link-bp').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "bp";
+        });
+    });
+
+    function getChannelById(id) {
+        if (id == "te") {
+            return ["Temperature", "&deg;C"];
+        } else if (id == "ws") {
+            return ["Wind Speed", "m/s"];
+        } else if (id == "wd") {
+            return ["Wind Direction", "&deg;N"];
+        } else if (id == "wi") {
+            return ["Wind", "&deg;N + m/s"];
+        } else if (id == "rh") {
+            return ["RH", "%"];
+        } else if (id == "bp") {
+            return ["Barometric Pressure", "hPa"];
+        } else {
+            return ["Unknown", ""];
+        }
+    }
+</script>
+</body>
+</html>

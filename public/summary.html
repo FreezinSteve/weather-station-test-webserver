@@ -1,0 +1,202 @@
+<div class="container">
+    <!-- TEMPERATURE-->
+    <div class="card">
+        <div class="row card-header">
+            <div class="col-auto">
+                <ul class="nav flex-nowrap">
+                    <li class="p-2"><strong>Temperature:</strong></li>
+                    <li class="p-2" id="latest_te">---</li>
+                    <li class="p-2">&deg;C</li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <ul class="nav justify-content-end flex-nowrap">
+                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_te">
+                        <div data-feather="chevrons-up" id="toggle_icon_te"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart_te" class="container"></div>
+        </div>
+    </div>
+
+    <!-- WIND SPEED -->
+    <div class="card">
+        <div class="row card-header">
+            <div class="col-auto">
+                <ul class="nav flex-nowrap">
+                    <li class="p-2"><strong>Wind Speed:</strong></li>
+                    <li class="p-2" id="latest_ws">---</li>
+                    <li class="p-2">m/s</li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <ul class="nav justify-content-end flex-nowrap">
+                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_ws">
+                        <div data-feather="chevrons-down" id="toggle_icon_ws"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart_ws" class="container" style="display:none"></div>
+        </div>
+    </div>
+    <!-- WIND DIRECTION-->
+    <div class="card">
+        <div class="row card-header">
+            <div class="col-auto">
+                <ul class="nav flex-nowrap">
+                    <li class="p-2"><strong>Wind Direction:</strong></li>
+                    <li class="p-2" id="latest_wd"><strong>---</strong></li>
+                    <li class="p-2">&deg;N</li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <ul class="nav justify-content-end flex-nowrap">
+                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_wd">
+                        <div data-feather="chevrons-down" id="toggle_icon_wd"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart_wd" class="container" style="display:none"></div>
+        </div>
+    </div>
+    <!-- RH -->
+    <div class="card">
+        <div class="row card-header">
+            <div class="col-auto">
+                <ul class="nav flex-nowrap">
+                    <li class="p-2"><strong>RH:</strong></li>
+                    <li class="p-2" id="latest_rh">---</li>
+                    <li class="p-2">%</li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <ul class="nav justify-content-end flex-nowrap">
+                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_rh">
+                        <div data-feather="chevrons-down" id="toggle_icon_rh"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart_rh" class="container" style="display:none"></div>
+        </div>
+    </div>
+    <!-- BP -->
+    <div class="card">
+        <div class="row card-header">
+            <div class="col-auto">
+                <ul class="nav flex-nowrap">
+                    <li class="p-2"><strong>Barometric Pressure:</strong></li>
+                    <li class="p-2" id="latest_bp">---</li>
+                    <li class="p-2">hPa</li>
+                </ul>
+            </div>
+
+            <div class="col">
+                <ul class="nav justify-content-end flex-nowrap">
+                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_bp">
+                        <div data-feather="chevrons-down" id="toggle_icon_bp"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="chart_bp" class="container" style="display:none"></div>
+        </div>
+    </div>
+</div>
+<!-- Click handlers -->
+<script>
+      $('#toggle_te').click(function(){
+        toggle("te");
+      });
+      $('#toggle_ws').click(function(){
+        toggle("ws");
+      });
+      $('#toggle_wd').click(function(){
+        toggle("wd");
+      });
+      $('#toggle_rh').click(function(){
+        toggle("rh");
+      });
+      $('#toggle_bp').click(function(){
+        toggle("bp");
+      });
+
+      function toggle(id){
+        if($("#chart_" + id).is(":visible")){
+            $("#chart_" + id).slideUp();
+            $("#toggle_icon_" + id).html(feather.icons['chevrons-down'].toSvg());
+        } else{
+            $("#chart_" + id).slideDown();
+            $("#toggle_icon_" + id).html(feather.icons['chevrons-up'].toSvg());
+        }
+      }
+
+
+</script>
+<!-- Graphs -->
+<script>
+var id = {
+    te: "Temperature",
+    ws: "Wind Speed",
+    wd: "Wind Direction",
+    rh: "RH",
+    bp: "Barometric Pressure"
+};
+for (key in id) {
+    var c = new Highcharts.Chart({
+        chart:
+        {
+            renderTo: "chart_" + key,
+            height: '25%'
+        },
+        title: { text: '' },
+        series: [{
+            showInLegend: false,
+            data: []
+        }],
+        plotOptions: {
+            line: {
+                animation: false,
+                dataLabels: { enabled: false }
+            },
+            series: { color: '#059e8a' }
+        },
+        xAxis: {
+            type: 'datetime',
+            dateTimeLabelFormats: {
+                day: "%e. %b",
+                month: "%b '%y",
+                year: "%Y"
+            }
+        },
+        yAxis: {
+            title: { text: id[key] }
+        },
+        credits: { enabled: false }
+    });
+    //Check if there's any data in the cache to load
+    if (key in window.realtimeData) {
+        var dataCache = window.realtimeData[key];
+        // Load cached pairs
+        for (var i = 0; i < dataCache.length; i++) {
+            c.series[0].addPoint(dataCache[i], false, false, false);
+        }
+        c.redraw(true);
+    }
+    window.charts[key] = c;
+};
+</script>
+</html>

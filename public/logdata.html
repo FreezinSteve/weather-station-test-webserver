@@ -1,0 +1,49 @@
+<div id="chart-logdata" class="container"></div>
+<script>
+    var channel = getChannelById(window.logChannelId);
+    var chartT = new Highcharts.Chart({
+      chart:{
+        renderTo : 'chart-logdata',
+        zoomType: 'x'},
+      title: { text: 'Log Data' },
+      series: [{
+        showInLegend: false,
+        data: []
+      }],
+      plotOptions: {
+        line: { animation: false,
+          dataLabels: { enabled: false }
+        },
+        series: { color: '#059e8a' }
+      },
+      xAxis: {
+        type: 'datetime',
+        dateTimeLabelFormats: {
+          day: "%e. %b",
+          month: "%b '%y",
+          year: "%Y"
+        }
+      },
+      yAxis: {
+        title: { text: channel[0] + '(' + channel[1] + ')' }
+      },
+      credits: { enabled: false }
+    });
+    var xhttp = new XMLHttpRequest();
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 && this.status == 200) {
+          var csv = this.responseText;
+          var lines = csv.split("\n");
+          for (var line of lines)
+          {
+            var item = line.split(",");
+            var x = new Date(item[0]).getTime();
+            var y = parseFloat(item[1]);
+            chartT.series[0].addPoint([x, y], false, false, false);
+          }
+          chartT.redraw(true);
+        }
+    };
+    xhttp.open("GET", "/sensor?id=' + window.logChannelId + '&day=0", true);
+    xhttp.send();
+</script>

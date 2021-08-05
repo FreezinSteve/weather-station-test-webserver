@@ -1,0 +1,161 @@
+<div id="chart-windbarb" class="container"></div>
+<div id="chart-windrose" class="container"></div>
+<script>
+    // Download wind speed and wind direction
+    var xhttpWS = new XMLHttpRequest();
+    xhttpWS.onreadystatechange = function () {
+        if (this.readyState == 4 && this.status == 200) {
+            var csvWS = this.responseText;
+            var xhttpWD = new XMLHttpRequest();
+            xhttpWD.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var csvWD = this.responseText;
+                    var linesWD = csvWD.split("\n");
+                    var linesWS = csvWS.split("\n");
+                    var wind = [];
+                    // Assume identical times for ws and wd
+                    for (var i =0; i < linesWD.length; i++) {
+                        if (linesWD[i].length > 0){
+                            var itemWD = linesWD[i].split(",");
+                            var itemWS = linesWS[i].split(",");
+                            var x = new Date(itemWD[0]).getTime();
+                            var wd = parseFloat(itemWD[1]);
+                            var ws = parseFloat(itemWS[1]);
+                            wind.push([x, ws, wd]);
+                        }
+                    }
+                    loadCharts(wind);
+                }
+            }
+            xhttpWD.open("GET", "/sensor?id=wd' + '&day=0", true);
+            xhttpWD.send();
+        }
+    };
+    xhttpWS.open("GET", "/sensor?id=ws' + '&day=0", true);
+    xhttpWS.send();
+
+    function loadCharts(windData){
+        // Limit the number of barb points
+        var barbData = [];
+        for (i=0; i<windData.length;i++){
+            if ((i % 3)==0){
+                barbData.push(windData[i]);
+            }
+        }
+        // build the data as 5 bins (wind speed up to 50m/s) each containing a list of 16 bins
+        var binData = [];
+        for (i = 0; i < 5; i++) {
+            binData.push(
+                {
+                    name: ((i + 1) * 10).toString() + 'm/s',
+                    data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                }
+            );
+        }
+        var pctPerPoint = windData.length / 100;        // Each data point represent 'x' percent of the total
+        // Now bin the data
+        for (i = 0; i < windData.length; i++) {
+            var speedBin = Math.floor(windData[i][1] / 10);        // each bin is 10m/s
+            if (speedBin > 4) { speedBin = 4; }
+            var dirBin = Math.floor(windData[i][2] / 22.5);        // each bin is 22.5 deg
+            if (dirBin > 15) { dirBin = dirBin - 16; }              // Should be modulus?
+            binData[speedBin].data[dirBin] += pctPerPoint;
+        }
+
+        Highcharts.chart('chart-windrose', {
+            title: {
+                text: ''
+            },
+            series: binData,
+
+            chart: {
+                polar: true,
+                type: 'column'
+            },
+            colors: [
+                "#19A7FB",  // BLUE
+                "#19FB71",  // GREEN
+                "#FBF419",  // YELLOW
+                "#FBC019",  // ORANGE
+                "#FB3719"   // RED
+            ],
+
+            pane: {
+                size: '100%'
+            },
+
+            legend: {
+                align: 'right',
+                verticalAlign: 'top',
+                y: 100,
+                layout: 'vertical'
+            },
+
+            xAxis: {
+                tickmarkPlacement: 'on',
+                categories: ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"]
+            },
+
+            yAxis: {
+                min: 0,
+                endOnTick: false,
+                showLastLabel: true,
+                title: {
+                    text: 'Frequency (%)'
+                },
+                labels: {
+                    formatter: function () {
+                        return this.value + '%';
+                    }
+                },
+                reversedStacks: false
+            },
+
+            tooltip: {
+                valueSuffix: '%'
+            },
+
+            plotOptions: {
+                series: {
+                    stacking: 'normal',
+                    shadow: false,
+                    groupPadding: 0,
+                    pointPlacement: 'on'
+                }
+            },
+            credits: { enabled: false }
+        });
+
+        Highcharts.chart('chart-windbarb', {
+            title: {
+                text: 'Wind speed and direction'
+            },
+            chart: {
+                height: '25%',
+            },
+            xAxis: {
+                type: 'datetime',
+                offset: 40
+            },
+            series: [{
+                type: 'windbarb',
+                data: barbData,
+                name: 'Wind',
+                color: Highcharts.getOptions().colors[1],
+                showInLegend: false,
+                tooltip: {
+                    valueSuffix: ' m/s'
+                }
+            }, {
+                type: 'area',
+                keys: ['x', 'y', 'rotation'], // rotation is not used here
+                data: windData,
+                name: 'Wind speed',
+                tooltip: {
+                    valueSuffix: ' m/s'
+                }
+            }],
+            credits: { enabled: false }
+        });
+    }
+</script>
