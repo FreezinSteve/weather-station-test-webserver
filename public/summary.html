@@ -1,43 +1,68 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5">
-  <div class="col mb-4" >
-    <div class="card">
-      <h5 class="card-header">Temperature</h5>
-      <div class="card-body" id="gauge_te">
-      </div>
+    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+        <div class="card">
+            <h5 class="card-header">Temperature</h5>
+            <div class="card-body">
+                <div id="gauge_te"></div>
+                <div style="text-align:center">
+                    <span id="latest_te" style="font-size:30px">---</span><br/>
+                    <span style="font-size:15px;opacity:0.4">&deg;C</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col mb-4" >
-    <div class="card">
-      <h5 class="card-header">RH</h5>
-      <div class="card-body" id="gauge_rh">
-      </div>
+    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+        <div class="card">
+            <h5 class="card-header">RH</h5>
+            <div class="card-body">
+                <div id="gauge_rh"></div>
+                <div style="text-align:center">
+                    <span id="latest_rh" style="font-size:30px">---</span><br/>
+                    <span style="font-size:15px;opacity:0.4">%</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col mb-4" >
-    <div class="card">
-      <h5 class="card-header">Pressure</h5>
-      <div class="card-body" id="gauge_bp">
-      </div>
+    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+        <div class="card">
+            <h5 class="card-header">Pressure</h5>
+            <div class="card-body">
+                <div id="gauge_bp"></div>
+                <div style="text-align:center">
+                    <span id="latest_bp" style="font-size:30px">---</span><br/>
+                    <span style="font-size:15px;opacity:0.4">hPa</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col mb-4" >
-    <div class="card">
-      <h5 class="card-header">Wind Speed</h5>
-      <div class="card-body" id="gauge_ws">
-      </div>
+    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+        <div class="card">
+            <h5 class="card-header">Wind Speed</h5>
+            <div class="card-body">
+                <div id="gauge_ws"></div>
+                <div style="text-align:center">
+                    <span id="latest_ws" style="font-size:30px">---</span><br/>
+                    <span style="font-size:15px;opacity:0.4">m/s</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <div class="col mb-4" >
-    <div class="card">
-      <h5 class="card-header">Wind Direction</h5>
-      <div class="card-body" id="gauge_wd">
-      </div>
+    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+        <div class="card">
+            <h5 class="card-header">Wind Direction</h5>
+            <div class="card-body">
+                <div id="gauge_wd"></div>
+                <div style="text-align:center">
+                    <span id="latest_wd" style="font-size:30px">---</span><br/>
+                    <span style="font-size:15px;opacity:0.4">&deg;N</span>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
 
 </div>
 <script src="solid-gauge.js"></script>
@@ -45,14 +70,14 @@
 var gaugeOptions = {
     chart: {
         type: 'solidgauge',
-        height: '100%'
+        height: '50%'
     },
 
     title: null,
 
     pane: {
-        center: ['50%', '50%'],
-        size: '100%',
+        center: ['50%', '100%'],
+        size: '200%',
         startAngle: -90,
         endAngle: 90,
         background: {
@@ -94,9 +119,7 @@ var gaugeOptions = {
     plotOptions: {
         solidgauge: {
             dataLabels: {
-                y: 5,
-                borderWidth: 0,
-                useHTML: true
+                enabled: false
             }
         }
     }
@@ -121,7 +144,7 @@ function getGauge(id, options, min, max, label, units){
           min: min,
           max: max,
           title: {
-              text: label
+              text: ""
           }
       },
 
@@ -135,8 +158,8 @@ function getGauge(id, options, min, max, label, units){
           dataLabels: {
               format:
                   '<div style="text-align:center">' +
-                  '<span style="font-size:20px">{y}</span><br/>' +
-                  '<span style="font-size:12px;opacity:0.4">' + units + '</span>' +
+                  '<span style="font-size:30px">{y}</span><br/>' +
+                  '<span style="font-size:15px;opacity:0.4">' + units + '</span>' +
                   '</div>'
           },
           tooltip: {
@@ -182,8 +205,8 @@ function getCompass(id, options, min, max, label, units) {
                         [1, '#333']
                     ]
                 },
-                borderWidth: 4,
-                outerRadius: '110%'
+                borderWidth: 1,
+                outerRadius: '100%'
             }, {
                 backgroundColor: {
                     linearGradient: {
@@ -204,7 +227,7 @@ function getCompass(id, options, min, max, label, units) {
             }, {
                 backgroundColor: '#DDD',
                 borderWidth: 4,
-                outerRadius: '105%',
+                outerRadius: '102%',
                 innerRadius: '100%'
             }]
         },
@@ -280,7 +303,7 @@ function getCompass(id, options, min, max, label, units) {
         }],
 
         series: [{
-            name: 'Compass',
+            name: '',
             yAxis: 0,
             data: [0],
             dial: {
@@ -293,9 +316,13 @@ function getCompass(id, options, min, max, label, units) {
                 backgroundColor: '#CC0000',
             },
             tooltip: {
-                valueSuffix: '°'
+                valueSuffix: '&deg;'
+            },
+            dataLabels: {
+                enabled: false
             }
         }, {
+            name: '',
             data: [0],
             yAxis: 0,
             dial: {
@@ -306,6 +333,12 @@ function getCompass(id, options, min, max, label, units) {
                 borderWidth: 1,
                 borderColor: '#1B4684',
                 backgroundColor: '#3465A4',
+            },
+            tooltip: {
+                valueSuffix: '&deg;'
+            },
+            dataLabels: {
+                enabled: false
             }
         }]
     });

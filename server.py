@@ -17,6 +17,9 @@ class Server(BaseHTTPRequestHandler):
     def do_HEAD(self):
         return
 
+    def do_POST(self):
+        return
+
     def do_GET(self):
         # split_path = os.path.splitext(self.path)
         # request_extension = split_path[1]
@@ -57,6 +60,11 @@ class Server(BaseHTTPRequestHandler):
             status["bp"] = str(random.randint(9800, 11000) / 10)
             json_msg = json.dumps(status)
             handler.set_response(json_msg)
+        elif self.path.startswith("/settings?"):
+            query = urlparse(self.path).query
+            parameters = parse_qs(query)
+            handler = StringResponseHandler()
+            handler.set_response("OK")
         else:
             # Static files in public folder
             handler = StaticHandler()

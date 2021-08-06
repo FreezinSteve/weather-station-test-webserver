@@ -6,7 +6,6 @@ import random
 from datetime import datetime
 from datetime import timedelta
 
-
 class SensorHandler(RequestHandler):
     temperature = random.randint(0, 300) / 10
 
@@ -37,31 +36,37 @@ class SensorHandler(RequestHandler):
                 min = -10
                 max = 10
                 floor = 0
+                ceil = 0
                 if id == "te":
                     val = random.randint(-100, 200) / 10
                     min = -5
                     max = 5
                     floor = -10
+                    ceil = 40
                 elif id == "ws":
                     val = random.randint(0, 300) / 10
                     min = -15
                     max = 15
                     floor = 0
+                    ceil = 30
                 elif id == "wd":
                     val = random.randint(0, 3590) / 10
                     min = -100
                     max = 100
                     floor = 0
+                    ceil = 359
                 elif id == "rh":
                     val = random.randint(50, 1000) / 10
                     min = -3
                     max = 3
                     floor = 0
+                    ceil = 100
                 elif id == "bp":
                     val = random.randint(9950, 10500) / 10
                     min = -1
                     max = 1
                     floor = 990
+                    ceil = 1050
                 # return a time series
                 data = ""
                 timestamp = datetime.now() + timedelta(days=1)
@@ -70,7 +75,8 @@ class SensorHandler(RequestHandler):
                     val = val + random.randint(min, max) / 10
                     if val < floor:
                         val = floor
-
+                    if val > ceil:
+                        val = ceil
                     data = data + str(timestamp) + "," + str(round(val, 1)) + "\n"
             self.contents = StringIO(data)
             if SensorHandler.temperature < 0:

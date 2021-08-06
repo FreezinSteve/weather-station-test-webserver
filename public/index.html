@@ -35,6 +35,8 @@
                     data-feather="droplet"></span>RH</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-bp"><span
                     data-feather="download-cloud"></span>Pressure</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-settings"><span
+                    data-feather="edit"></span>Settings</a>
         </div>
     </div>
     <!-- Page content wrapper-->
@@ -79,13 +81,86 @@
     var logChannelId = "";          // Currently displayed log channel ID
 
     $(document).ready(function () {
+
+        autoLoadSummary();
+        initClickHandlers();
+        runRealTimeDataUpdate();
+        initViewPortChangeHandler();
+    });
+
+    //====================================================
+    function getChannelById(id) {
+        if (id == "te") {
+            return ["Temperature", "&deg;C"];
+        } else if (id == "ws") {
+            return ["Wind Speed", "m/s"];
+        } else if (id == "wd") {
+            return ["Wind Direction", "&deg;N"];
+        } else if (id == "wi") {
+            return ["Wind", "&deg;N + m/s"];
+        } else if (id == "rh") {
+            return ["RH", "%"];
+        } else if (id == "bp") {
+            return ["Barometric Pressure", "hPa"];
+        } else {
+            return ["Unknown", ""];
+        }
+    }
+    //====================================================
+    function autoLoadSummary(){
         // Automatically load the summary page
         $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
             // callback function
             feather.replace();
         });
+    }
+    //====================================================
+    function initClickHandlers(){
+        /* create event handler that loads content into main area when navigation link is clicked */
+        $('#link-summary').click(function () {
+            $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+            autoCloseSidebar();
+        });
 
-        /* Fast update timer, update current instantaneous reading */
+        $('#link-realtime').click(function () {
+            $('#main-body').load('realtime.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+            autoCloseSidebar();
+        });
+
+        $('#link-te').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "te";
+            autoCloseSidebar();
+        });
+        $('#link-wi').click(function () {
+            $('#main-body').load('logdatawind.html');
+            logChannelId = "wi";
+            autoCloseSidebar();
+        });
+        $('#link-rh').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "rh";
+            autoCloseSidebar();
+        });
+        $('#link-bp').click(function () {
+            $('#main-body').load('logdata.html');
+            logChannelId = "bp";
+            autoCloseSidebar();
+        });
+        $('#link-settings').click(function () {
+            $('#main-body').load('settings.html');
+            autoCloseSidebar();
+        });
+    }
+    //====================================================
+    function runRealTimeDataUpdate(){
+            /* Fast update timer, update current instantaneous reading */
         var scantimer = setInterval(function () {
             var xhttpTime = new XMLHttpRequest();
             xhttpTime.onreadystatechange = function () {
@@ -145,55 +220,43 @@
             xhttpTime.send();
 
         }, 5000);
-
-        /* create event handler that loads content into main area when navigation link is clicked */
-        $('#link-summary').click(function () {
-            $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
-                // callback function
-                feather.replace();
-            });
+    }
+    //====================================================
+    function getViewport() {
+        // https://stackoverflow.com/a/8876069
+        const width = Math.max(
+            document.documentElement.clientWidth,
+            window.innerWidth || 0
+        );
+        if (width <= 576) return 'xs';
+        if (width <= 768) return 'sm';
+        if (width <= 992) return 'md';
+        if (width <= 1200) return 'lg';
+        return 'xl';
+    }
+    //====================================================
+    function initViewPortChangeHandler() {
+        let viewport = getViewport();
+        let debounce;
+        $(window).resize(() => {
+            debounce = setTimeout(() => {
+                const currentViewport = getViewport();
+                if (currentViewport !== viewport) {
+                    viewport = currentViewport;
+                    $(window).trigger('newViewport', viewport);
+                }
+            }, 500);
         });
-
-        $('#link-realtime').click(function () {
-            $('#main-body').load('realtime.html', null, function (data, status, jqXGR) {
-                // callback function
-                feather.replace();
-            });
+        $(window).on('newViewport', (viewport) => {
+            // Calculate how many windbarbs can fit in the viewport and reload windbarbs
         });
-
-        $('#link-te').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "te";
-        });
-        $('#link-wi').click(function () {
-            $('#main-body').load('logdatawind.html');
-            logChannelId = "wi";
-        });
-        $('#link-rh').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "rh";
-        });
-        $('#link-bp').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "bp";
-        });
-    });
-
-    function getChannelById(id) {
-        if (id == "te") {
-            return ["Temperature", "&deg;C"];
-        } else if (id == "ws") {
-            return ["Wind Speed", "m/s"];
-        } else if (id == "wd") {
-            return ["Wind Direction", "&deg;N"];
-        } else if (id == "wi") {
-            return ["Wind", "&deg;N + m/s"];
-        } else if (id == "rh") {
-            return ["RH", "%"];
-        } else if (id == "bp") {
-            return ["Barometric Pressure", "hPa"];
-        } else {
-            return ["Unknown", ""];
+        // run when page loads
+        //$(window).trigger('newViewport', viewport)
+    }
+    //====================================================
+    function autoCloseSidebar(){
+        if (document.body.classList.contains('sb-sidenav-toggled')){
+            document.body.classList.toggle('sb-sidenav-toggled');
         }
     }
 </script>

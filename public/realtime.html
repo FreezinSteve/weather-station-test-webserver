@@ -149,6 +149,10 @@ for (key in id) {
         } else if (key == "ws") {
             var wsCache = window.realtimeData["ws"];
             var wdCache = window.realtimeData["wd"];
+            var bb = document.querySelector('#chart_ws')
+                    .getBoundingClientRect(),
+            width = bb.right - bb.left;
+            console.log("width: " + width.toString());
             if (wsCache.length == wdCache.length){
                 for (var i = 0; i < wsCache.length; i++) {
                     var ws = wsCache[i];
