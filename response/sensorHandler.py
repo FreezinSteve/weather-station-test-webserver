@@ -33,13 +33,45 @@ class SensorHandler(RequestHandler):
                 SensorHandler.temperature = SensorHandler.temperature + random.randint(-10, 10) / 10
                 data = str(round(SensorHandler.temperature, 1))
             else:
+                val = 0
+                min = -10
+                max = 10
+                floor = 0
+                if id == "te":
+                    val = random.randint(-100, 200) / 10
+                    min = -5
+                    max = 5
+                    floor = -10
+                elif id == "ws":
+                    val = random.randint(0, 300) / 10
+                    min = -15
+                    max = 15
+                    floor = 0
+                elif id == "wd":
+                    val = random.randint(0, 3590) / 10
+                    min = -100
+                    max = 100
+                    floor = 0
+                elif id == "rh":
+                    val = random.randint(50, 1000) / 10
+                    min = -3
+                    max = 3
+                    floor = 0
+                elif id == "bp":
+                    val = random.randint(9950, 10500) / 10
+                    min = -1
+                    max = 1
+                    floor = 990
                 # return a time series
                 data = ""
                 timestamp = datetime.now() + timedelta(days=1)
                 for i in range(0, 144):
                     timestamp = timestamp + timedelta(minutes=10)
-                    SensorHandler.temperature = SensorHandler.temperature + random.randint(-10, 10) / 10
-                    data = data + str(timestamp) + "," + str(round(SensorHandler.temperature, 1)) + "\n"
+                    val = val + random.randint(min, max) / 10
+                    if val < floor:
+                        val = floor
+
+                    data = data + str(timestamp) + "," + str(round(val, 1)) + "\n"
             self.contents = StringIO(data)
             if SensorHandler.temperature < 0:
                 SensorHandler.temperature += 10

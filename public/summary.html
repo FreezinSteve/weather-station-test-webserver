@@ -1,202 +1,314 @@
-<div class="container">
-    <!-- TEMPERATURE-->
+<div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5">
+  <div class="col mb-4" >
     <div class="card">
-        <div class="row card-header">
-            <div class="col-auto">
-                <ul class="nav flex-nowrap">
-                    <li class="p-2"><strong>Temperature:</strong></li>
-                    <li class="p-2" id="latest_te">---</li>
-                    <li class="p-2">&deg;C</li>
-                </ul>
-            </div>
-
-            <div class="col">
-                <ul class="nav justify-content-end flex-nowrap">
-                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_te">
-                        <div data-feather="chevrons-up" id="toggle_icon_te"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chart_te" class="container"></div>
-        </div>
+      <h5 class="card-header">Temperature</h5>
+      <div class="card-body" id="gauge_te">
+      </div>
     </div>
+  </div>
 
-    <!-- WIND SPEED -->
+  <div class="col mb-4" >
     <div class="card">
-        <div class="row card-header">
-            <div class="col-auto">
-                <ul class="nav flex-nowrap">
-                    <li class="p-2"><strong>Wind Speed:</strong></li>
-                    <li class="p-2" id="latest_ws">---</li>
-                    <li class="p-2">m/s</li>
-                </ul>
-            </div>
-
-            <div class="col">
-                <ul class="nav justify-content-end flex-nowrap">
-                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_ws">
-                        <div data-feather="chevrons-down" id="toggle_icon_ws"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chart_ws" class="container" style="display:none"></div>
-        </div>
+      <h5 class="card-header">RH</h5>
+      <div class="card-body" id="gauge_rh">
+      </div>
     </div>
-    <!-- WIND DIRECTION-->
+  </div>
+
+  <div class="col mb-4" >
     <div class="card">
-        <div class="row card-header">
-            <div class="col-auto">
-                <ul class="nav flex-nowrap">
-                    <li class="p-2"><strong>Wind Direction:</strong></li>
-                    <li class="p-2" id="latest_wd"><strong>---</strong></li>
-                    <li class="p-2">&deg;N</li>
-                </ul>
-            </div>
-
-            <div class="col">
-                <ul class="nav justify-content-end flex-nowrap">
-                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_wd">
-                        <div data-feather="chevrons-down" id="toggle_icon_wd"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chart_wd" class="container" style="display:none"></div>
-        </div>
+      <h5 class="card-header">Pressure</h5>
+      <div class="card-body" id="gauge_bp">
+      </div>
     </div>
-    <!-- RH -->
+  </div>
+
+  <div class="col mb-4" >
     <div class="card">
-        <div class="row card-header">
-            <div class="col-auto">
-                <ul class="nav flex-nowrap">
-                    <li class="p-2"><strong>RH:</strong></li>
-                    <li class="p-2" id="latest_rh">---</li>
-                    <li class="p-2">%</li>
-                </ul>
-            </div>
-
-            <div class="col">
-                <ul class="nav justify-content-end flex-nowrap">
-                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_rh">
-                        <div data-feather="chevrons-down" id="toggle_icon_rh"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chart_rh" class="container" style="display:none"></div>
-        </div>
+      <h5 class="card-header">Wind Speed</h5>
+      <div class="card-body" id="gauge_ws">
+      </div>
     </div>
-    <!-- BP -->
+  </div>
+
+  <div class="col mb-4" >
     <div class="card">
-        <div class="row card-header">
-            <div class="col-auto">
-                <ul class="nav flex-nowrap">
-                    <li class="p-2"><strong>Barometric Pressure:</strong></li>
-                    <li class="p-2" id="latest_bp">---</li>
-                    <li class="p-2">hPa</li>
-                </ul>
-            </div>
-
-            <div class="col">
-                <ul class="nav justify-content-end flex-nowrap">
-                    <li class="btn btn-outline-secondary btn-sm ml-auto p-2" id="toggle_bp">
-                        <div data-feather="chevrons-down" id="toggle_icon_bp"></div>
-                    </li>
-                </ul>
-            </div>
-        </div>
-        <div class="card-body">
-            <div id="chart_bp" class="container" style="display:none"></div>
-        </div>
+      <h5 class="card-header">Wind Direction</h5>
+      <div class="card-body" id="gauge_wd">
+      </div>
     </div>
+  </div>
+
 </div>
-<!-- Click handlers -->
+<script src="solid-gauge.js"></script>
 <script>
-      $('#toggle_te').click(function(){
-        toggle("te");
-      });
-      $('#toggle_ws').click(function(){
-        toggle("ws");
-      });
-      $('#toggle_wd').click(function(){
-        toggle("wd");
-      });
-      $('#toggle_rh').click(function(){
-        toggle("rh");
-      });
-      $('#toggle_bp').click(function(){
-        toggle("bp");
-      });
+var gaugeOptions = {
+    chart: {
+        type: 'solidgauge',
+        height: '100%'
+    },
 
-      function toggle(id){
-        if($("#chart_" + id).is(":visible")){
-            $("#chart_" + id).slideUp();
-            $("#toggle_icon_" + id).html(feather.icons['chevrons-down'].toSvg());
-        } else{
-            $("#chart_" + id).slideDown();
-            $("#toggle_icon_" + id).html(feather.icons['chevrons-up'].toSvg());
+    title: null,
+
+    pane: {
+        center: ['50%', '50%'],
+        size: '100%',
+        startAngle: -90,
+        endAngle: 90,
+        background: {
+            backgroundColor:
+                Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+            innerRadius: '60%',
+            outerRadius: '100%',
+            shape: 'arc'
         }
-      }
+    },
 
+    exporting: {
+        enabled: false
+    },
 
-</script>
-<!-- Graphs -->
-<script>
-var id = {
-    te: "Temperature",
-    ws: "Wind Speed",
-    wd: "Wind Direction",
-    rh: "RH",
-    bp: "Barometric Pressure"
-};
-for (key in id) {
-    var c = new Highcharts.Chart({
-        chart:
-        {
-            renderTo: "chart_" + key,
-            height: '25%'
+    tooltip: {
+        enabled: false
+    },
+
+    // the value axis
+    yAxis: {
+        stops: [
+            [0.1, '#55BF3B'], // green
+            [0.5, '#DDDF0D'], // yellow
+            [0.9, '#DF5353'] // red
+        ],
+        lineWidth: 0,
+        tickWidth: 0,
+        minorTickInterval: null,
+        tickAmount: 2,
+        title: {
+            y: -70
         },
-        title: { text: '' },
-        series: [{
-            showInLegend: false,
-            data: []
-        }],
-        plotOptions: {
-            line: {
-                animation: false,
-                dataLabels: { enabled: false }
-            },
-            series: { color: '#059e8a' }
-        },
-        xAxis: {
-            type: 'datetime',
-            dateTimeLabelFormats: {
-                day: "%e. %b",
-                month: "%b '%y",
-                year: "%Y"
+        labels: {
+            y: 16
+        }
+    },
+
+    plotOptions: {
+        solidgauge: {
+            dataLabels: {
+                y: 5,
+                borderWidth: 0,
+                useHTML: true
             }
-        },
-        yAxis: {
-            title: { text: id[key] }
-        },
-        credits: { enabled: false }
-    });
-    //Check if there's any data in the cache to load
-    if (key in window.realtimeData) {
-        var dataCache = window.realtimeData[key];
-        // Load cached pairs
-        for (var i = 0; i < dataCache.length; i++) {
-            c.series[0].addPoint(dataCache[i], false, false, false);
         }
-        c.redraw(true);
     }
-    window.charts[key] = c;
 };
+
+
+var gaugeTemp = getGauge('gauge_te', gaugeOptions, -10, 40, "Temperature", "&deg;C");
+var gaugeRH = getGauge('gauge_rh', gaugeOptions, 0, 100, "RH", "%");
+var gaugeBP = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Pressure", "hPa");
+var gaugeWS = getGauge('gauge_ws', gaugeOptions, 0, 30, "Wind Speed", "m/s");
+var gaugeWD = getCompass('gauge_wd', gaugeOptions, -10, 40, "Wind Direction", "&deg;N");
+
+window.gauges["te"] = gaugeTemp;
+window.gauges["rh"] = gaugeRH;
+window.gauges["bp"] = gaugeBP;
+window.gauges["ws"] = gaugeWS;
+window.gauges["wd"] = gaugeWD;
+
+function getGauge(id, options, min, max, label, units){
+  var c = Highcharts.chart(id, Highcharts.merge(options, {
+      yAxis: {
+          min: min,
+          max: max,
+          title: {
+              text: label
+          }
+      },
+
+      credits: {
+          enabled: false
+      },
+
+      series: [{
+          name: label,
+          data: [0],
+          dataLabels: {
+              format:
+                  '<div style="text-align:center">' +
+                  '<span style="font-size:20px">{y}</span><br/>' +
+                  '<span style="font-size:12px;opacity:0.4">' + units + '</span>' +
+                  '</div>'
+          },
+          tooltip: {
+              valueSuffix: ' ' + units
+          }
+      }]
+  }));
+  return c;
+}
+
+function getCompass(id, options, min, max, label, units) {
+    var c = Highcharts.chart(id, {
+        chart: {
+            type: 'gauge',
+            plotBackgroundColor: null,
+            plotBackgroundImage: null,
+            plotBorderWidth: 0,
+            height: '100%'
+        },
+
+        title: {
+            text: ''
+        },
+        credits: {
+          enabled: false
+        },
+        pane: {
+            startAngle: 0,
+            endAngle: 360,
+            background: [{
+                borderWidth: 1,
+                outerRadius: '50%'
+            }, {
+                backgroundColor: {
+                    linearGradient: {
+                        x1: 0,
+                        y1: 0,
+                        x2: 0,
+                        y2: 1
+                    },
+                    stops: [
+                        [0, '#FFF'],
+                        [1, '#333']
+                    ]
+                },
+                borderWidth: 4,
+                outerRadius: '110%'
+            }, {
+                backgroundColor: {
+                    linearGradient: {
+                        x1: 0,
+                        y1: 0,
+                        x2: 0,
+                        y2: 1
+                    },
+                    stops: [
+                        [0, '#333'],
+                        [1, '#FFF']
+                    ]
+                },
+                borderWidth: 4,
+                outerRadius: '10%'
+            }, {
+                // default background
+            }, {
+                backgroundColor: '#DDD',
+                borderWidth: 4,
+                outerRadius: '105%',
+                innerRadius: '100%'
+            }]
+        },
+        // the value axis
+        yAxis: [{
+            title: {
+                text: '',
+            },
+            min: 0,
+            max: 360,
+            lineColor: '#333',
+            offset: -10,
+            tickInterval: 20,
+            tickWidth: 2,
+            tickPosition: 'outside',
+            tickLength: 10,
+            tickColor: '#333',
+            minorTickInterval: 5,
+            minorTickWidth: 1,
+            minorTickLength: 10,
+            minorTickPosition: 'outside',
+            minorTickColor: '#666',
+            labels: {
+                step: 1,
+                distance: -12,
+                rotation: 'auto'
+            },
+        }, {
+            title: {
+                text: '',
+            },
+            type: 'category',
+            categories: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'],
+            min: 0,
+            max: 8,
+            lineColor: '#ddd',
+            offset: -50,
+            tickInterval: 1,
+            tickWidth: 1,
+            tickPosition: 'outside',
+            tickLength: 40, // =50-10
+            tickColor: '#ddd',
+            minorTickInterval: 1,
+            minorTickWidth: 0,
+            minorTickLength: 50,
+            minorTickPosition: 'inside',
+            minorTickColor: '#0f0',
+            labels: {
+                step: 1,
+                distance: 2,
+                rotation: 'auto'
+            },
+            endOnTick: true,
+        }, {
+            type: 'number',
+            title: {
+                text: '',
+            },
+            labels: {
+                enabled: false,
+            },
+            min: 0,
+            max: 12,
+            lineColor: '#ddd',
+            offset: -50,
+            tickInterval: 10,
+            tickWidth: 1,
+            tickPosition: 'inside',
+            tickLength: 45,
+            tickColor: '#ddd',
+            minorTickWidth: 0,
+            endOnTick: false,
+        }],
+
+        series: [{
+            name: 'Compass',
+            yAxis: 0,
+            data: [0],
+            dial: {
+                radius: '88%',
+                baseWidth: 10,
+                baseLength: '0%',
+                rearLength: 0,
+                borderWidth: 1,
+                borderColor: '#9A0000',
+                backgroundColor: '#CC0000',
+            },
+            tooltip: {
+                valueSuffix: '°'
+            }
+        }, {
+            data: [0],
+            yAxis: 0,
+            dial: {
+                radius: '-88%',
+                baseWidth: 10,
+                baseLength: '0%',
+                rearLength: 0,
+                borderWidth: 1,
+                borderColor: '#1B4684',
+                backgroundColor: '#3465A4',
+            }
+        }]
+    });
+    return c;
+}
 </script>
-</html>

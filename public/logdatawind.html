@@ -27,11 +27,11 @@
                     loadCharts(wind);
                 }
             }
-            xhttpWD.open("GET", "/sensor?id=wd' + '&day=0", true);
+            xhttpWD.open("GET", '/sensor?id=wd' + '&day=0', true);
             xhttpWD.send();
         }
     };
-    xhttpWS.open("GET", "/sensor?id=ws' + '&day=0", true);
+    xhttpWS.open("GET", '/sensor?id=ws' + '&day=0', true);
     xhttpWS.send();
 
     function loadCharts(windData){
@@ -42,12 +42,14 @@
                 barbData.push(windData[i]);
             }
         }
-        // build the data as 5 bins (wind speed up to 50m/s) each containing a list of 16 bins
+        // build the data as 6 bins of 5 m/s (wind speed up to 30m/s) each containing a list of 16 bins for direction
         var binData = [];
-        for (i = 0; i < 5; i++) {
+        var windSpeedBins = 6;
+        var windSpeedBinRes = 5;
+        for (i = 0; i < windSpeedBins; i++) {
             binData.push(
                 {
-                    name: ((i + 1) * 10).toString() + 'm/s',
+                    name: ((i + 1) * windSpeedBinRes).toString() + 'm/s',
                     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
             );
@@ -55,9 +57,14 @@
         var pctPerPoint = windData.length / 100;        // Each data point represent 'x' percent of the total
         // Now bin the data
         for (i = 0; i < windData.length; i++) {
-            var speedBin = Math.floor(windData[i][1] / 10);        // each bin is 10m/s
-            if (speedBin > 4) { speedBin = 4; }
-            var dirBin = Math.floor(windData[i][2] / 22.5);        // each bin is 22.5 deg
+            var speedBin = Math.floor(windData[i][1] / windSpeedBinRes);        // each bin is windSpeedBinRes m/s
+            if(speedBin > (windSpeedBins - 1)) {
+                speedBin = (windSpeedBins - 1);
+            } else if (speedBin < 0){
+                speedBin = 0;
+            }
+
+            var dirBin = Math.floor(windData[i][2] / 22.5);        // each direction bin is 22.5 deg
             if (dirBin > 15) { dirBin = dirBin - 16; }              // Should be modulus?
             binData[speedBin].data[dirBin] += pctPerPoint;
         }
@@ -74,6 +81,7 @@
             },
             colors: [
                 "#19A7FB",  // BLUE
+                "#19F4FB",  // TURQ
                 "#19FB71",  // GREEN
                 "#FBF419",  // YELLOW
                 "#FBC019",  // ORANGE

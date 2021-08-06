@@ -20,7 +20,9 @@
         <div class="sidebar-heading border-bottom bg-primary text-white"><img src="PB100.png"/>PB100</div>
         <div class="list-group list-group-flush">
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-summary"><span
-                    data-feather="home"></span>Home</a>
+                    data-feather="home"></span>Summary</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-realtime"><span
+                    data-feather="clock"></span>Realtime</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-te"><span
                     data-feather="thermometer"></span>Temperature</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wi"><span
@@ -68,8 +70,10 @@
 
 <script>
     // Global variables
-    var charts = {};            // Dictionary of charts. The keys of the charts matches the id suffix of the element, matches
-    // the id of the channel in the webservice
+    var charts = {};            // Dictionary of realtime charts. The keys of the charts matches the id suffix
+                                // of the element matches the id of the channel in the webservice
+    var gauges = {};            // Dictionary of summary gauges
+
     var realtimeData = {};      // Dictionary of lists of instantaneous data capped to "n" max values.
 
     var logChannelId = "";          // Currently displayed log channel ID
@@ -99,8 +103,30 @@
                             // Update any charts
                             if (key in charts) {
                                 var c = charts[key];
-                                c.series[0].addPoint([x, y], false, false, false);
-                                c.redraw(true);
+                                if (key != "ws" && key != "wd"){
+                                    c.series[0].addPoint([x, y], false, false, false);
+                                    c.redraw(true);
+                                } else if (key == "ws") {
+                                    var ws = y;
+                                    var wd = parseFloat(status["wd"]);
+                                    c.series[0].addPoint([x, ws, wd], false, false, false);
+                                    c.series[1].addPoint([x, ws, wd], false, false, false);
+                                    c.redraw(true);
+                                }
+                            }
+
+                            // Update any gauges
+                            if (key in gauges) {
+                                var g = gauges[key];
+                                if (key != "wd"){
+                                    point = g.series[0].points[0];
+                                    point.update(Math.round(y * 10) / 10);
+                                } else{
+                                    point = g.series[0].points[0];
+                                    point.update(Math.round(y));
+                                    point = g.series[1].points[0];
+                                    point.update(Math.round(y));
+                                }
                             }
 
                             // Update data cache
@@ -127,6 +153,14 @@
                 feather.replace();
             });
         });
+
+        $('#link-realtime').click(function () {
+            $('#main-body').load('realtime.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+        });
+
         $('#link-te').click(function () {
             $('#main-body').load('logdata.html');
             logChannelId = "te";
