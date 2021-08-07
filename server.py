@@ -18,7 +18,19 @@ class Server(BaseHTTPRequestHandler):
         return
 
     def do_POST(self):
-        return
+        if self.path == "/update-settings":
+            handler = StringResponseHandler()
+            content_len = int(self.headers.get('Content-Length'))
+            post_body = self.rfile.read(content_len)
+            handler.set_response(str(post_body))
+            handler.setStatus(200)
+        else:
+            handler = StringResponseHandler()
+            handler.set_response("Unknown route")
+            handler.setStatus(404)
+        self.respond({
+            'handler': handler
+        })
 
     def do_GET(self):
         # split_path = os.path.splitext(self.path)
@@ -60,11 +72,6 @@ class Server(BaseHTTPRequestHandler):
             status["bp"] = str(random.randint(9800, 11000) / 10)
             json_msg = json.dumps(status)
             handler.set_response(json_msg)
-        elif self.path.startswith("/settings?"):
-            query = urlparse(self.path).query
-            parameters = parse_qs(query)
-            handler = StringResponseHandler()
-            handler.set_response("OK")
         else:
             # Static files in public folder
             handler = StaticHandler()

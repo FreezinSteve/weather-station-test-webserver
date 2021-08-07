@@ -8,6 +8,45 @@
             <label for="settings-password">Password</label>
             <input type="password" name="password" class="form-control" id="settings-password" placeholder="Password">
         </div>
+        <div class="form-group  col-md-6">
+            <label for="settings-ipaddr">Fixed IP Address</label>
+            <input class="form-control" id="settings-ipaddr" name="addr" placeholder="192.168.1.1" type="text" minlength="7" maxlength="15"
+                   size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+        </div>
     </div>
     <button type="submit" class="btn btn-primary">Save</button>
 </form>
+<script>
+
+//this will stop the submit of the form but allow the native HTML5 validation (which is what i believe you are after)
+$("form").on('submit',function(e){
+    e.preventDefault();
+    submitSettings();
+});
+
+function submitSettings(){
+    var xhttpSubmit = new XMLHttpRequest();
+    xhttpSubmit.onreadystatechange = function () {
+        if (this.readyState == 4 ) {
+            if (this.status == 200){
+                $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
+                    // callback function
+                    feather.replace();
+                });
+            } else {
+                // Failed, go back to settings
+                $('#main-body').load('settings.html');
+            }
+        }
+    };
+    var e = document.getElementById("settings-ssid");
+    var payload = document.getElementById("settings-ssid").value;
+    payload += ",";
+    payload += document.getElementById("settings-password").value;
+    payload += ",";
+    payload += document.getElementById("settings-ipaddr").value;
+    xhttpSubmit.open("POST", "/update-settings", true);
+    xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+    xhttpSubmit.send(payload);
+}
+</script>
