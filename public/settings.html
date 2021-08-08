@@ -41,9 +41,9 @@ function submitSettings(){
     };
     var e = document.getElementById("settings-ssid");
     var payload = document.getElementById("settings-ssid").value;
-    payload += ",";
+    payload += "|";
     payload += document.getElementById("settings-password").value;
-    payload += ",";
+    payload += "|";
     payload += document.getElementById("settings-ipaddr").value;
     xhttpSubmit.open("POST", "/update-settings", true);
     xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
