@@ -72,6 +72,9 @@ class Server(BaseHTTPRequestHandler):
             status["bp"] = str(random.randint(9800, 11000) / 10)
             json_msg = json.dumps(status)
             handler.set_response(json_msg)
+        elif self.path == "/reboot":
+            handler = StringResponseHandler()
+            handler.set_response("Module rebooting")
         else:
             # Static files in public folder
             handler = StaticHandler()

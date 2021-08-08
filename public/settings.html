@@ -10,11 +10,13 @@
         </div>
         <div class="form-group  col-md-6">
             <label for="settings-ipaddr">Fixed IP Address</label>
-            <input class="form-control" id="settings-ipaddr" name="addr" placeholder="192.168.1.1" type="text" minlength="7" maxlength="15"
+            <input class="form-control" id="settings-ipaddr" name="addr" placeholder="192.168.1.1" type="text"
+                   minlength="7" maxlength="15"
                    size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
         </div>
     </div>
-    <button type="submit" class="btn btn-primary">Save</button>
+    <button type="submit" class="btn btn-primary mt-3">Save</button>
+    <button type="button" class="btn btn-primary mt-3" onclick="reboot()">Reboot</button>
 </form>
 <script>
 
@@ -29,24 +31,42 @@ function submitSettings(){
     xhttpSubmit.onreadystatechange = function () {
         if (this.readyState == 4 ) {
             if (this.status == 200){
+                window.alert("New settings saved");
                 $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
                     // callback function
                     feather.replace();
                 });
             } else {
                 // Failed, go back to settings
+                window.alert("Update settings failed!");
                 $('#main-body').load('settings.html');
             }
         }
     };
     var e = document.getElementById("settings-ssid");
     var payload = document.getElementById("settings-ssid").value;
-    payload += "|";
+    payload += "\n";
     payload += document.getElementById("settings-password").value;
-    payload += "|";
+    payload += "\n";
     payload += document.getElementById("settings-ipaddr").value;
     xhttpSubmit.open("POST", "/update-settings", true);
     xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
     xhttpSubmit.send(payload);
 }
+
+function reboot(){
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("GET", 'reboot', true);
+    xhttp.onreadystatechange = function() {
+        if (this.readyState == 4) {
+            if (this.status == 200){
+                window.alert(this.responseText);
+            } else {
+                window.alert("Failed (" +  this.status.toString() + ")");
+            }
+        }
+    };
+    xhttp.send();
+}
+
 </script>
