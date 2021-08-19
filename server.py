@@ -1,5 +1,6 @@
 import json
 import random
+import time
 
 from http.server import BaseHTTPRequestHandler
 from routes.main import routes
@@ -24,6 +25,10 @@ class Server(BaseHTTPRequestHandler):
             post_body = self.rfile.read(content_len)
             handler.set_response(str(post_body))
             handler.setStatus(200)
+        elif self.path == "/reboot":
+            handler = StringResponseHandler()
+            handler.set_response(str("Module rebooting"))
+            handler.setStatus(200)
         else:
             handler = StringResponseHandler()
             handler.set_response("Unknown route")
@@ -33,20 +38,6 @@ class Server(BaseHTTPRequestHandler):
         })
 
     def do_GET(self):
-        # split_path = os.path.splitext(self.path)
-        # request_extension = split_path[1]
-        # e.g. /sensors?id=rh&day=0
-        #      /sensors?id=rhg
-        #      /time
-        #      /heapfree
-        #      buffer?id=rh
-
-        # if request_extension == "" or request_extension == ".html":
-        #    if self.path in routes:
-        #        handler = TemplateHandler()
-        #        handler.find(routes[self.path])
-        #    else:
-        #        handler = BadRequestHandler()
         if self.path == "/":
             handler = StaticHandler()
             handler.find("/index.html")
@@ -75,6 +66,9 @@ class Server(BaseHTTPRequestHandler):
         elif self.path == "/reboot":
             handler = StringResponseHandler()
             handler.set_response("Module rebooting")
+        elif self.path == "/read-settings":
+            handler = StringResponseHandler()
+            handler.set_response("Casa de lima\nturtle00\n192.168.1.100\n192.168.1.250")
         else:
             # Static files in public folder
             handler = StaticHandler()
@@ -85,7 +79,7 @@ class Server(BaseHTTPRequestHandler):
 
     def handle_http(self, handler):
         status_code = handler.getStatus()
-
+        time.sleep(1)
         self.send_response(status_code)
 
         if status_code is 200:
