@@ -3,28 +3,35 @@
         <div class="form-group col-md-6">
             <label for="settings-ssid">SSID</label>
             <input class="form-control" name="ssid" oninput="enableSave()" id="settings-ssid"
-                   placeholder="Enter SSID to connect to">
+                placeholder="Enter SSID to connect to">
         </div>
         <div class="form-group  col-md-6">
             <label for="settings-password">Password</label>
             <input type="password" name="password" oninput="enableSave()" class="form-control" id="settings-password"
-                   placeholder="Enter password">
+                placeholder="Enter password">
         </div>
         <div class="form-group  col-md-6">
             <label for="settings-ipaddr">Fixed IP Address</label>
             <input class="form-control" oninput="enableSave()" id="settings-ipaddr" name="addr"
-                   placeholder="192.168.1.100" type="text"
-                   minlength="7" maxlength="15"
-                   size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+                placeholder="192.168.1.100" type="text" minlength="7" maxlength="15" size="15"
+                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
         </div>
         <div class="form-group  col-md-6">
             <label for="settings-gatewayaddr">Gateway IP Address</label>
             <input class="form-control" oninput="enableSave()" id="settings-gatewayaddr" name="gateway"
-                   placeholder="192.168.1.250" type="text"
-                   minlength="7" maxlength="15"
-                   size="15" pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+                placeholder="192.168.1.250" type="text" minlength="7" maxlength="15" size="15"
+                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
         </div>
-
+        <div class="form-group  col-md-6">
+            <label for="settings-proxyaddr">Reverse Proxy IP Address (external access)</label>
+            <input class="form-control" type="text" id="settings-proxyaddr" name="proxy" placeholder="192.168.1.130"
+                minlength="7" maxlen0gth="15" size="15"
+                pattern="^((\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$">
+        </div>
+        <div class="form-group col-md-6">
+            <label for="settings-utcoffset">UTC Offset (minutes)</label>
+            <input class="form-control" type="number" name="utcoffset" id="settings-utcoffset" placeholder="720">
+        </div>
     </div>
     <button id="settings-save" type="button" onclick="submitSettings()" class="btn btn-primary mt-3" disabled="true">
         Save
@@ -35,83 +42,95 @@
 <!--Load existing settings-->
 <script>
     var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
+    xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-          var settings = this.responseText;
-          var lines = settings.split("\n");
-          var i = 0;
-          for (var line of lines)
-          {
-            if (i == 0){
-                document.getElementById("settings-ssid").value = line;
-            } else if (i == 1){
-                document.getElementById("settings-password").value = line;
-            } else if (i == 2){
-                document.getElementById("settings-ipaddr").value = line;
-            } else if (i == 3){
-                 document.getElementById("settings-gatewayaddr").value = line;
+            var settings = this.responseText;
+            if (settings) {
+                var lines = settings.split("\n");
+                var i = 0;
+                // We don't return the password as this would expose it via the API
+                for (var line of lines) {
+                    if (i == 0) {
+                        document.getElementById("settings-ssid").value = line;
+                    } else if (i == 1) {
+                        document.getElementById("settings-ipaddr").value = line;
+                    } else if (i == 2) {
+                        document.getElementById("settings-gatewayaddr").value = line;
+                    } else if (i == 3) {
+                        document.getElementById("settings-proxyaddr").value = line;
+                    } else if (i == 4) {
+                        document.getElementById("settings-utcoffset").value = line;
+                    }
+                    i++;
+                }
+            } else {
+                document.getElementById("settings-proxyaddr").value = "0.0.0.0";
+                document.getElementById("settings-utcoffset").value = "720";
             }
-            i++;
-          }
         }
     };
-    xhttp.open("GET", '/read-settings' , true);
+    xhttp.open("GET", 'read-settings', true);
     xhttp.send();
 </script>
 
 <!-- Event callbacks-->
 <script>
-// Enable the Save button when SSID and password are set.
-function enableSave(){
-    var ssid = document.getElementById("settings-ssid").value;
-    var pass = document.getElementById("settings-password").value;
-    var ip = document.getElementById("settings-ipaddr").value;
-    var gateway = document.getElementById("settings-gatewayaddr").value;
-    if (ssid.length > 0 && pass.length > 0 && ip.length > 0 && gateway.length > 0){
-        document.getElementById("settings-save").disabled = false;
-    } else {
-        document.getElementById("settings-save").disabled = true;
+    // Enable the Save button when SSID and password are set.
+    function enableSave() {
+        var ssid = document.getElementById("settings-ssid").value;
+        var pass = document.getElementById("settings-password").value;
+        var ip = document.getElementById("settings-ipaddr").value;
+        var gateway = document.getElementById("settings-gatewayaddr").value;
+        if (ssid.length > 0 && pass.length > 0 && ip.length > 0 && gateway.length > 0) {
+            document.getElementById("settings-save").disabled = false;
+        } else {
+            document.getElementById("settings-save").disabled = true;
+        }
     }
-}
 
-function submitSettings(){
-    var xhttpSubmit = new XMLHttpRequest();
-    xhttpSubmit.onreadystatechange = function () {
-        if (this.readyState == 4 ) {
-            if (this.status == 200){
-                window.alert("New settings saved - reboot to apply settings");
-            } else {
-                // Failed, go back to settings
-                window.alert("Update settings failed!");
+    function submitSettings() {
+        var xhttpSubmit = new XMLHttpRequest();
+        xhttpSubmit.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    window.alert("New settings saved - reboot to apply settings");
+                } else {
+                    // Failed, go back to settings
+                    window.alert("Update settings failed!");
+                }
             }
-        }
-    };
-    var payload = document.getElementById("settings-ssid").value;
-    payload += "\n";
-    payload += document.getElementById("settings-password").value;
-    payload += "\n";
-    payload += document.getElementById("settings-ipaddr").value;
-    payload += "\n";
-    payload += document.getElementById("settings-gatewayaddr").value;
-    xhttpSubmit.open("POST", "/update-settings", true);
-    xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-    xhttpSubmit.send(payload);
-}
+        };
+        var payload = document.getElementById("settings-ssid").value;
+        payload += "\n";
+        payload += document.getElementById("settings-password").value;
+        payload += "\n";
+        payload += document.getElementById("settings-ipaddr").value;
+        payload += "\n";
+        payload += document.getElementById("settings-gatewayaddr").value;
+        payload += "\n";
+        payload += document.getElementById("settings-proxyaddr").value;
+        payload += "\n";
+        payload += document.getElementById("settings-utcoffset").value;
+        payload += "\n";
+        xhttpSubmit.open("POST", "update-settings", true);
+        xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
+        xhttpSubmit.send(payload);
+    }
 
-function reboot(){
-    var xhttp = new XMLHttpRequest();
-    xhttp.open('POST', '/reboot', true);
-    xhttp.setRequestHeader('Content-type', 'text/plain');
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4) {
-            if (this.status == 200){
-                window.alert(this.responseText);
-            } else {
-                window.alert("Failed (" +  this.status.toString() + ")");
+    function reboot() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('POST', 'reboot', true);
+        xhttp.setRequestHeader('Content-type', 'text/plain');
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    window.alert(this.responseText);
+                } else {
+                    window.alert("Failed (" + this.status.toString() + ")");
+                }
             }
-        }
-    };
-    xhttp.send();
-}
+        };
+        xhttp.send();
+    }
 
 </script>

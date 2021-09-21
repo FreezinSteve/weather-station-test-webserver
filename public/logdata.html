@@ -1,49 +1,154 @@
 <div id="chart-logdata" class="container"></div>
+<div id="logdata-summary" hidden class="container mt-5">
+  <div class="row">
+    <div class="col-md-12">
+      <ul class="list list-inline">
+        <li class="d-flex justify-content-between">
+          <div class="d-flex flex-row align-items-center"><i class="fa fa-check-circle checkicon"></i>
+            <div class="ml-2">
+              <h6 class="mb-0">Minimum</h6>
+              <div class="d-flex flex-row mt-1 text-black-50">
+                <div class="ml-3">
+                  <span id="logdata-minval" class="ml-2">minval</span>
+                </div>
+                <div class="ml-3">
+                  <span class="ml-2">&nbsp;&#64;&nbsp;</span>
+                </div>
+                <div>
+                  <span id="logdata-mindate" class="ml-2">01 Jan 2020 00:00 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+        <li class="d-flex justify-content-between">
+          <div class="d-flex flex-row align-items-center"><i class="fa fa-check-circle checkicon"></i>
+            <div class="ml-2">
+              <h6 class="mb-0">Maximum</h6>
+              <div class="d-flex flex-row mt-1 text-black-50">
+                <div class="ml-3">
+                  <span id="logdata-maxval" class="ml-2">maxval</span>
+                </div>
+                <div class="ml-3">
+                  <span class="ml-2">&nbsp;&#64;&nbsp;</span>
+                </div>
+                <div>
+                  <span id="logdata-maxdate" class="ml-2">01 Jan 2020 00:00 AM</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
 <script>
-    var channel = getChannelById(window.logChannelId);
-    var chartT = new Highcharts.Chart({
-      chart:{
-        renderTo : 'chart-logdata',
-        zoomType: 'x'},
-      title: { text: 'Log Data' },
-      series: [{
-        showInLegend: false,
-        data: []
-      }],
-      plotOptions: {
-        line: { animation: false,
-          dataLabels: { enabled: false }
-        },
-        series: { color: '#059e8a' }
+  var channel = getChannelById(window.logChannelId);
+  var chartT = new Highcharts.Chart({
+    chart: {
+      renderTo: 'chart-logdata',
+      zoomType: 'x'
+    },
+    title: { text: 'Log Data' },
+    series: [{
+      showInLegend: false,
+      data: []
+    }],
+    plotOptions: {
+      line: {
+        animation: false,
+        dataLabels: { enabled: false }
       },
-      xAxis: {
-        type: 'datetime',
-        dateTimeLabelFormats: {
-          day: "%e. %b",
-          month: "%b '%y",
-          year: "%Y"
-        }
-      },
-      yAxis: {
-        title: { text: channel[0] + '(' + channel[1] + ')' }
-      },
-      credits: { enabled: false }
-    });
+      series: { color: '#059e8a' }
+    },
+    xAxis: {
+      type: 'datetime',
+      dateTimeLabelFormats: {
+        day: "%e. %b",
+        month: "%b '%y",
+        year: "%Y"
+      }
+    },
+    yAxis: {
+      title: { text: channel[0] + '(' + channel[1] + ')' }
+    },
+    credits: { enabled: false }
+  });
+  function loadData() {
     var xhttp = new XMLHttpRequest();
-    xhttp.onreadystatechange = function() {
-        if (this.readyState == 4 && this.status == 200) {
-          var csv = this.responseText;
-          var lines = csv.split("\n");
-          for (var line of lines)
-          {
-            var item = line.split(",");
-            var x = new Date(item[0]).getTime();
-            var y = parseFloat(item[1]);
-            chartT.series[0].addPoint([x, y], false, false, false);
-          }
-          chartT.redraw(true);
+    xhttp.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        // Erase all old data
+        while (chartT.series[0].data.length > 0) {
+          chartT.series[0].data[0].remove(false) //false = don't redraw
         }
+        var csv = this.responseText;
+        var lines = csv.split("\n");
+        var min = Number.POSITIVE_INFINITY;
+        var minTime;
+        var max = Number.NEGATIVE_INFINITY;
+        var maxTime;
+        for (var line of lines) {
+          var item = line.split(",");
+          var x = new Date(item[0]).getTime();
+          var y = parseFloat(item[1]);
+          if (y < min) {
+            min = y;
+            minTime = x;
+          }
+          if (y > max) {
+            max = y;
+            maxTime = x;
+          }
+          chartT.series[0].addPoint([x, y], false, false, false);
+        }
+        chartT.redraw(true);
+
+        // Update max / min display
+        if (min != Number.POSITIVE_INFINITY) {
+          document.getElementById("logdata-mindate").innerHTML = new Date(minTime).toLocaleString("en-NZ");
+          document.getElementById("logdata-minval").innerHTML = min.toString() + "&nbsp;" + channel[1];
+        } else {
+          document.getElementById("logdata-mindate").innerHTML = "N/A";
+          document.getElementById("logdata-minval").innerHTML = "";
+        }
+
+        if (max != Number.NEGATIVE_INFINITY) {
+          document.getElementById("logdata-maxdate").innerHTML = new Date(maxTime).toLocaleString("en-NZ");
+          document.getElementById("logdata-maxval").innerHTML = max.toString() + "&nbsp;" + channel[1];
+        } else {
+          document.getElementById("logdata-maxdate").innerHTML = "N/A";
+          document.getElementById("logdata-maxval").innerHTML = "";
+        }
+        document.getElementById("logdata-summary").hidden = false;
+      }
     };
-    xhttp.open("GET", '/sensor?id=' + window.logChannelId + '&day=0', true);
+    xhttp.open("GET", 'sensor?id=' + window.logChannelId + '&day=0', true);
     xhttp.send();
+  }
+
+  // Load data now
+  loadData();
+
+  // Update on the 10 minute log interval
+  var lastLog = 0;
+  var ticktimer = setInterval(function () {
+    if (lastLog == 0) {
+      // Initialise the lastLog variable
+      if (moduleDateTime > 0) {
+        lastLog = Math.floor(moduleDateTime / 60000);
+      }
+    } else {
+      // Check to see if we're on the next 10 minute interval
+      var thisLog = Math.floor(moduleDateTime / 60000);
+      if (lastLog != thisLog) {
+        lastLog = thisLog;
+        // Load new data
+        loadData();
+      }
+    }
+  }, 1000);
+
 </script>

@@ -44,11 +44,17 @@ class SensorHandler(RequestHandler):
                     floor = -10
                     ceil = 40
                 elif id == "ws":
-                    val = random.randint(0, 300) / 10
+                    val = random.randint(0, 200) / 10
                     min = -15
                     max = 15
                     floor = 0
-                    ceil = 30
+                    ceil = 20
+                elif id == "gs":
+                    val = random.randint(0, 500) / 10
+                    min = -15
+                    max = 15
+                    floor = 0
+                    ceil = 50
                 elif id == "wd":
                     val = random.randint(0, 3590) / 10
                     min = -100

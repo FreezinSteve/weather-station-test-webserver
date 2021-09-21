@@ -1,264 +1,110 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
-    <meta name="description" content=""/>
-    <meta name="author" content=""/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
     <title>PB100 Weather Station</title>
-    <!-- Favicon-->
-    <link rel="icon" type="image/x-icon" href="favicon.ico"/>
     <!-- Core theme CSS (includes Bootstrap)-->
-    <link href="styles.css" rel="stylesheet"/>
-    <!-- load ajax, loaded locally -->
-    <script src="jquery.min.js"></script>
+    <link href="styles.css" rel="stylesheet" />
 </head>
+
 <body>
-<div class="d-flex" id="wrapper">
-    <!-- Sidebar-->
-    <div class="border-end bg-white" id="sidebar-wrapper">
-        <div class="sidebar-heading border-bottom bg-primary text-white"><img src="PB100.png"/>PB100</div>
-        <div class="list-group list-group-flush">
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-summary"><span
-                    data-feather="home"></span>Summary</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-realtime"><span
-                    data-feather="clock"></span>Realtime</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-te"><span
-                    data-feather="thermometer"></span>Temperature</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wi"><span
-                    data-feather="wind"></span>Wind</a>
-            <!--
-                        <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wd"><span
-                                data-feather="compass"></span>Wind Direction</a>
-            -->
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-rh"><span
-                    data-feather="droplet"></span>RH</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-bp"><span
-                    data-feather="download-cloud"></span>Pressure</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-settings"><span
-                    data-feather="edit"></span>Settings</a>
-        </div>
+    <div class="jumbotron vertical-center text-center">
+        <h1 class="display-4">PB100</h1>
+        <p class="lead">Loading components for application</p>
+        <hr class="my-4">
+        <p id="progress">Loading...</p>
+        <p id="errors"></p>
     </div>
-    <!-- Page content wrapper-->
-    <div id="page-content-wrapper">
-        <!-- Top navigation-->
-        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
-            <div class="container-fluid">
-                <button class="btn btn-outline-primary" id="sidebarToggle"><i data-feather="menu"></i></button>
-                <div class="d-flex">
-                    <div data-feather="clock"></div>
-                    <div id="latest_dt" class="navbar-heading bg-light"></div>
-                </div>
-            </div>
-        </nav>
-        <!-- Page content-->
-        <div id="main-body" class="container">
-            <!--        <div id="main-body">-->
-        </div>
-    </div>
-</div>
-<!-- Bootstrap core JS-->
-<script src="bootstrap.bundle.min.js"></script>
-<!-- Core theme JS-->
-<script src="scripts.js"></script>
-<!-- Icons -->
-<script src="feather.min.js"></script>
-<script>
-    feather.replace();
-</script>
-<script src="highcharts.js"></script>
-<script src="highcharts-more.js"></script>
-<script src="windbarb.js"></script>
-
-<script>
-    // Global variables
-    var charts = {};            // Dictionary of realtime charts. The keys of the charts matches the id suffix
-                                // of the element matches the id of the channel in the webservice
-    var gauges = {};            // Dictionary of summary gauges
-
-    var realtimeData = {};      // Dictionary of lists of instantaneous data capped to "n" max values.
-
-    var logChannelId = "";          // Currently displayed log channel ID
-
-    $(document).ready(function () {
-
-        autoLoadSummary();
-        initClickHandlers();
-        runRealTimeDataUpdate();
-        initViewPortChangeHandler();
-    });
-
-    //====================================================
-    function getChannelById(id) {
-        if (id == "te") {
-            return ["Temperature", "&deg;C"];
-        } else if (id == "ws") {
-            return ["Wind Speed", "m/s"];
-        } else if (id == "wd") {
-            return ["Wind Direction", "&deg;N"];
-        } else if (id == "wi") {
-            return ["Wind", "&deg;N + m/s"];
-        } else if (id == "rh") {
-            return ["RH", "%"];
-        } else if (id == "bp") {
-            return ["Barometric Pressure", "hPa"];
-        } else {
-            return ["Unknown", ""];
-        }
-    }
-    //====================================================
-    function autoLoadSummary(){
-        // Automatically load the summary page
-        $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
-            // callback function
-            feather.replace();
-        });
-    }
-    //====================================================
-    function initClickHandlers(){
-        /* create event handler that loads content into main area when navigation link is clicked */
-        $('#link-summary').click(function () {
-            $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
-                // callback function
-                feather.replace();
-            });
-            autoCloseSidebar();
-        });
-
-        $('#link-realtime').click(function () {
-            $('#main-body').load('realtime.html', null, function (data, status, jqXGR) {
-                // callback function
-                feather.replace();
-            });
-            autoCloseSidebar();
-        });
-
-        $('#link-te').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "te";
-            autoCloseSidebar();
-        });
-        $('#link-wi').click(function () {
-            $('#main-body').load('logdatawind.html');
-            logChannelId = "wi";
-            autoCloseSidebar();
-        });
-        $('#link-rh').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "rh";
-            autoCloseSidebar();
-        });
-        $('#link-bp').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "bp";
-            autoCloseSidebar();
-        });
-        $('#link-settings').click(function () {
-            $('#main-body').load('settings.html');
-            autoCloseSidebar();
-        });
-    }
-    //====================================================
-    function runRealTimeDataUpdate(){
-            /* Fast update timer, update current instantaneous reading */
-        var scantimer = setInterval(function () {
-            var xhttpTime = new XMLHttpRequest();
-            xhttpTime.onreadystatechange = function () {
-                if (this.readyState == 4 && this.status == 200) {
-                    var status = JSON.parse(this.responseText);
-                    for (key in status) {
-                        if (status.hasOwnProperty(key)) {
-                            var id = "latest_" + key;
-                            if (document.getElementById(id) !== null) {
-                                document.getElementById(id).innerHTML = status[key];
-                            }
-                            var x = new Date(status["dt"]).getTime();
-                            var y = parseFloat(status[key]);
-
-                            // Update any charts
-                            if (key in charts) {
-                                var c = charts[key];
-                                if (key != "ws" && key != "wd"){
-                                    c.series[0].addPoint([x, y], false, false, false);
-                                    c.redraw(true);
-                                } else if (key == "ws") {
-                                    var ws = y;
-                                    var wd = parseFloat(status["wd"]);
-                                    c.series[0].addPoint([x, ws, wd], false, false, false);
-                                    c.series[1].addPoint([x, ws, wd], false, false, false);
-                                    c.redraw(true);
-                                }
-                            }
-
-                            // Update any gauges
-                            if (key in gauges) {
-                                var g = gauges[key];
-                                if (key != "wd"){
-                                    point = g.series[0].points[0];
-                                    point.update(Math.round(y * 10) / 10);
-                                } else{
-                                    point = g.series[0].points[0];
-                                    point.update(Math.round(y));
-                                    point = g.series[1].points[0];
-                                    point.update(Math.round(y));
-                                }
-                            }
-
-                            // Update data cache
-                            if (!(key in realtimeData)) {
-                                realtimeData[key] = [];
-                            }
-                            var len = realtimeData[key].push([x, y]);
-                            if (len > 100) {
-                                realtimeData[key].shift();
-                            }
-                        }
-                    }
-                }
-            };
-            xhttpTime.open("GET", "/status", true);
-            xhttpTime.send();
-
-        }, 5000);
-    }
-    //====================================================
-    function getViewport() {
-        // https://stackoverflow.com/a/8876069
-        const width = Math.max(
-            document.documentElement.clientWidth,
-            window.innerWidth || 0
-        );
-        if (width <= 576) return 'xs';
-        if (width <= 768) return 'sm';
-        if (width <= 992) return 'md';
-        if (width <= 1200) return 'lg';
-        return 'xl';
-    }
-    //====================================================
-    function initViewPortChangeHandler() {
-        let viewport = getViewport();
-        let debounce;
-        $(window).resize(() => {
-            debounce = setTimeout(() => {
-                const currentViewport = getViewport();
-                if (currentViewport !== viewport) {
-                    viewport = currentViewport;
-                    $(window).trigger('newViewport', viewport);
-                }
-            }, 500);
-        });
-        $(window).on('newViewport', (viewport) => {
-            // Calculate how many windbarbs can fit in the viewport and reload windbarbs
-        });
-        // run when page loads
-        //$(window).trigger('newViewport', viewport)
-    }
-    //====================================================
-    function autoCloseSidebar(){
-        if (document.body.classList.contains('sb-sidenav-toggled')){
-            document.body.classList.toggle('sb-sidenav-toggled');
-        }
-    }
-</script>
 </body>
+<script>
+    window.onbeforeunload = function () {
+        return "If you leave, real time data charts will be reset";
+    }
+    // Load the components 1 by 1 so that we don't hammer the ESP
+    // which can only handle 1 request at a time
+    var sources = [
+        "jquery.min.js",
+        "bootstrap.bundle.min.js",
+        "feather.min.js",
+        "highcharts.js",
+        "highcharts-more.js",
+        "windbarb.js",
+        "solid-gauge.js"
+    ];
+    var idx = 0;
+    var downloadComplete = true;
+    var progress = document.getElementById("progress");
+    var errors = document.getElementById("errors");
+
+    function getNextSource() {
+        var source = sources[idx];
+        var req = new XMLHttpRequest();
+        downloadComplete = false;
+        progress.innerHTML = "Downloading: " + source;
+        req.addEventListener('readystatechange', function (e) {
+            if (req.readyState == 4 && req.status == 200) {
+                // Downloading has finished
+                var script = document.createElement('script');
+                script.innerHTML = req.response;
+                document.body.appendChild(script);
+                downloadComplete = true;
+                idx++;
+            } else if (req.readyState == 4) {
+                // Failed
+                notifyFailed(source);
+            }
+        });
+
+        // progress percent of file
+        req.addEventListener('progress', function (e) {
+            if (e.lengthComputable === true) {
+                var download_percent = (e.loaded / e.total) * 100;
+                console.log(download_percent);
+            }
+        });
+
+        req.responseType = 'text';
+        req.open('GET', source);
+        req.send();
+    }
+
+    var ticktimer = setInterval(function () {
+        if (idx >= sources.length) {
+            clearInterval(ticktimer);
+            progress.innerHTML = "Starting application";
+            getMainPage();
+        } else {
+            if (downloadComplete) {
+                getNextSource();
+            }
+        }
+    }, 250);
+
+    function getMainPage() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.open('GET', 'app.html', true);
+        xhttp.setRequestHeader('Content-type', 'text/plain');
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4) {
+                if (this.status == 200) {
+                    $('body').html(this.responseText);
+                } else {
+                    window.alert("Failed (" + this.status.toString() + ")");
+                }
+            }
+        };
+        xhttp.send();
+    }
+
+    function notifyFailed(source){
+        // Add to UI
+        errors.innerHTML += "Error: Failed to load: " + source + "<br>" ;
+    }
+    //feather.replace();
+</script>
+
 </html>

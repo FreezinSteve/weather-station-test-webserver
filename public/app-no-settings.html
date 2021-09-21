@@ -1,0 +1,253 @@
+<div class="d-flex" id="wrapper">
+    <!-- Sidebar-->
+    <div class="border-end bg-white" id="sidebar-wrapper">
+        <div class="sidebar-heading border-bottom bg-primary text-white"><img src="PB100.png" />PB100</div>
+        <div class="list-group list-group-flush">
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-summary"><span
+                    data-feather="home"></span>Summary</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-realtime"><span
+                    data-feather="clock"></span>Realtime</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-te"><span
+                    data-feather="thermometer"></span>Temperature</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wi"><span
+                    data-feather="wind"></span>Wind</a>
+            <!--
+                        <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wd"><span
+                                data-feather="compass"></span>Wind Direction</a>
+            -->
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-rh"><span
+                    data-feather="droplet"></span>RH</a>
+            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-bp"><span
+                    data-feather="download-cloud"></span>Pressure</a>
+
+        </div>
+    </div>
+    <!-- Page content wrapper-->
+    <div id="page-content-wrapper">
+        <!-- Top navigation-->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="btn btn-outline-primary" id="sidebarToggle"><i data-feather="menu"></i></button>
+                <div class="d-flex">
+                    <div data-feather="clock"></div>
+                    <div id="latest_dt" class="navbar-heading bg-light"></div>
+                </div>
+            </div>
+        </nav>
+        <!-- Page content-->
+        <div id="main-body" class="container">
+            <!--        <div id="main-body">-->
+        </div>
+    </div>
+</div>
+
+<script>
+    feather.replace();
+    initSidebar();
+
+    Highcharts.setOptions({
+        global: {
+            useUTC: false
+        }
+    });
+
+    // Global variables
+    var charts = {};            // Dictionary of realtime charts. The keys of the charts matches the id suffix
+    // of the element matches the id of the channel in the webservice
+    var gauges = {};            // Dictionary of summary gauges
+
+    var realtimeData = {};      // Dictionary of lists of instantaneous data capped to "n" max values.
+
+    var logChannelId = "";          // Currently displayed log channel ID
+
+    var moduleDateTime;
+
+    $(document).ready(function () {
+
+        autoLoadSummary();
+        initClickHandlers();
+        runRealTimeDataUpdate();
+        initViewPortChangeHandler();
+        getStatus();
+    });
+    //====================================================
+    function getChannelById(id) {
+        if (id == "te") {
+            return ["Temperature", "&deg;C"];
+        } else if (id == "ws") {
+            return ["Wind Speed", "m/s"];
+        } else if (id == "wd") {
+            return ["Wind Direction", "&deg;N"];
+        } else if (id == "wi") {
+            return ["Wind", "&deg;N + m/s"];
+        } else if (id == "rh") {
+            return ["RH", "%"];
+        } else if (id == "bp") {
+            return ["Barometric Pressure", "hPa"];
+        } else {
+            return ["Unknown", ""];
+        }
+    }
+    //====================================================
+    function autoLoadSummary() {
+        // Automatically load the summary page
+        $('#main-body').load(document.location.pathname +  'summary.html', null, function (data, status, jqXGR) {
+            // callback function
+            feather.replace();
+        });
+    }
+    //====================================================
+    function initClickHandlers() {
+        /* create event handler that loads content into main area when navigation link is clicked */
+        $('#link-summary').click(function () {
+            $('#main-body').load(document.location.pathname + 'summary.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+            autoCloseSidebar();
+        });
+
+        $('#link-realtime').click(function () {
+            $('#main-body').load(document.location.pathname + 'realtime.html', null, function (data, status, jqXGR) {
+                // callback function
+                feather.replace();
+            });
+            autoCloseSidebar();
+        });
+
+        $('#link-te').click(function () {
+            $('#main-body').load(document.location.pathname + 'logdata.html');
+            logChannelId = "te";
+            autoCloseSidebar();
+        });
+        $('#link-wi').click(function () {
+            $('#main-body').load(document.location.pathname + 'logdatawind.html');
+            logChannelId = "wi";
+            autoCloseSidebar();
+        });
+        $('#link-rh').click(function () {
+            $('#main-body').load(document.location.pathname + 'logdata.html');
+            logChannelId = "rh";
+            autoCloseSidebar();
+        });
+        $('#link-bp').click(function () {
+            $('#main-body').load(document.location.pathname + 'logdata.html');
+            logChannelId = "bp";
+            autoCloseSidebar();
+        });
+    }
+    //====================================================
+    function runRealTimeDataUpdate() {
+        /* Fast update timer, update current instantaneous reading */
+        var scantimer = setInterval(getStatus, 5000);
+    }
+    //====================================================
+    function getStatus () {
+        var xhttpTime = new XMLHttpRequest();
+        xhttpTime.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var status = JSON.parse(this.responseText);
+                for (key in status) {
+                    if (status.hasOwnProperty(key)) {
+                        var id = "latest_" + key;
+                        if (document.getElementById(id) !== null) {
+                            document.getElementById(id).innerHTML = status[key];
+                        }
+                        var x = new Date(status["dt"]).getTime();
+                        moduleDateTime = x;
+                        var y = parseFloat(status[key]);
+
+                        // Update any charts
+                        if (key in charts) {
+                            var c = charts[key];
+                            if (key != "ws" && key != "wd") {
+                                c.series[0].addPoint([x, y], false, false, false);
+                                c.redraw(true);
+                            } else if (key == "ws") {
+                                var ws = y;
+                                var wd = parseFloat(status["wd"]);
+                                c.series[0].addPoint([x, ws, wd], false, false, false);
+                                c.series[1].addPoint([x, ws, wd], false, false, false);
+                                c.redraw(true);
+                            }
+                        }
+
+                        // Update any gauges
+                        if (key in gauges) {
+                            var g = gauges[key];
+                            if (key != "wd") {
+                                point = g.series[0].points[0];
+                                point.update(Math.round(y * 10) / 10);
+                            } else {
+                                point = g.series[0].points[0];
+                                point.update(Math.round(y));
+                                point = g.series[1].points[0];
+                                point.update(Math.round(y));
+                            }
+                        }
+
+                        // Update data cache
+                        if (!(key in realtimeData)) {
+                            realtimeData[key] = [];
+                        }
+                        var len = realtimeData[key].push([x, y]);
+                        if (len > 100) {
+                            realtimeData[key].shift();
+                        }
+                    }
+                }
+            }
+        };
+        xhttpTime.open("GET", document.location.pathname + "status", true);
+        xhttpTime.send();
+    }
+    //====================================================
+    function getViewport() {
+        const width = Math.max(
+            document.documentElement.clientWidth,
+            window.innerWidth || 0
+        );
+        if (width <= 576) return 'xs';
+        if (width <= 768) return 'sm';
+        if (width <= 992) return 'md';
+        if (width <= 1200) return 'lg';
+        return 'xl';
+    }
+    //====================================================
+    function initViewPortChangeHandler() {
+        let viewport = getViewport();
+        let debounce;
+        $(window).resize(() => {
+            debounce = setTimeout(() => {
+                const currentViewport = getViewport();
+                if (currentViewport !== viewport) {
+                    viewport = currentViewport;
+                    $(window).trigger('newViewport', viewport);
+                }
+            }, 500);
+        });
+        $(window).on('newViewport', (viewport) => {
+            // Calculate how many windbarbs can fit in the viewport and reload windbarbs
+        });
+        // run when page loads
+        //$(window).trigger('newViewport', viewport)
+    }
+    //====================================================
+    function autoCloseSidebar() {
+        if (document.body.classList.contains('sb-sidenav-toggled')) {
+            document.body.classList.toggle('sb-sidenav-toggled');
+        }
+    }
+    //====================================================
+    function initSidebar() {
+        // Toggle the side navigation
+        const sidebarToggle = document.body.querySelector('#sidebarToggle');
+        if (sidebarToggle) {
+            sidebarToggle.addEventListener('click', event => {
+                event.preventDefault();
+                document.body.classList.toggle('sb-sidenav-toggled');
+                localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sb-sidenav-toggled'));
+            });
+        }
+    }
+</script>
