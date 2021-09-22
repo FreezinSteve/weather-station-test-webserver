@@ -25,7 +25,7 @@
         return "If you leave, real time data charts will be reset";
     }
     // Load the components 1 by 1 so that we don't hammer the ESP
-    // which can only handle 1 request at a time
+    // which can only handle 4 request at a time
     var sources = [
         "jquery.min.js",
         "bootstrap.bundle.min.js",
@@ -104,7 +104,6 @@
         // Add to UI
         errors.innerHTML += "Error: Failed to load: " + source + "<br>" ;
     }
-    //feather.replace();
 </script>
 
 </html>

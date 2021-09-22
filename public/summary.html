@@ -1,347 +1,206 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5">
-    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+    <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
         <div class="card">
             <h5 class="card-header">Temperature</h5>
             <div class="card-body">
-                <div id="gauge_te"></div>
-                <div style="text-align:center">
-                    <span id="latest_te" style="font-size:30px">---</span><br/>
-                    <span style="font-size:15px;opacity:0.4">&deg;C</span>
-                </div>
+                <div id="gauge_te" style="height: 200px"></div>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+    <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
         <div class="card">
             <h5 class="card-header">RH</h5>
             <div class="card-body">
-                <div id="gauge_rh"></div>
-                <div style="text-align:center">
-                    <span id="latest_rh" style="font-size:30px">---</span><br/>
-                    <span style="font-size:15px;opacity:0.4">%</span>
-                </div>
+                <div id="gauge_rh" style="height: 200px"></div>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
+    <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
         <div class="card">
             <h5 class="card-header">Pressure</h5>
             <div class="card-body">
-                <div id="gauge_bp"></div>
-                <div style="text-align:center">
-                    <span id="latest_bp" style="font-size:30px">---</span><br/>
-                    <span style="font-size:15px;opacity:0.4">hPa</span>
-                </div>
+                <div id="gauge_bp" style="height: 200px"></div>
             </div>
         </div>
     </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
-        <div class="card">
-            <h5 class="card-header">Wind Speed</h5>
-            <div class="card-body">
-                <div id="gauge_ws"></div>
-                <div style="text-align:center">
-                    <span id="latest_ws" style="font-size:30px">---</span><br/>
-                    <span style="font-size:15px;opacity:0.4">m/s</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-3 col-md-6 col-sm-9 mb-4">
-        <div class="card">
-            <h5 class="card-header">Wind Direction</h5>
-            <div class="card-body">
-                <div id="gauge_wd"></div>
-                <div style="text-align:center">
-                    <span id="latest_wd" style="font-size:30px">---</span><br/>
-                    <span style="font-size:15px;opacity:0.4">&deg;N</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </div>
+<!-- WIND -->
+<div class="row row-cols-1">
+    <div class="row card-header">
+        <div class="col-auto">
+            <ul class="nav flex-nowrap">
+                <li class="p-2"><strong></strong>Wind Speed:</strong></li>
+                <li class="p-2" id="latest_ws">---</li>
+                <li class="p-2">m/s</li>
+
+                <li class="p-2"><strong>Wind Direction:</strong></li>
+                <li class="p-2" id="latest_wd">---</li>
+                <li class="p-2">&deg;N</li>
+            </ul>
+        </div>
+    </div>
+    <div class="card-body">
+        <div id="chart_ws" class="container"></div>
+    </div>
+</div>
+
 <!-- <script src="solid-gauge.js"></script> -->
 <script>
-var gaugeOptions = {
-    chart: {
-        type: 'solidgauge',
-        height: '50%'
-    },
 
-    title: null,
-
-    pane: {
-        center: ['50%', '100%'],
-        size: '200%',
-        startAngle: -90,
-        endAngle: 90,
-        background: {
-            backgroundColor:
-                Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
-            innerRadius: '60%',
-            outerRadius: '100%',
-            shape: 'arc'
-        }
-    },
-
-    exporting: {
-        enabled: false
-    },
-
-    tooltip: {
-        enabled: false
-    },
-
-    // the value axis
-    yAxis: {
-        stops: [
-            [0.1, '#55BF3B'], // green
-            [0.5, '#DDDF0D'], // yellow
-            [0.9, '#DF5353'] // red
-        ],
-        lineWidth: 0,
-        tickWidth: 0,
-        minorTickInterval: null,
-        tickAmount: 2,
-        title: {
-            y: -70
+    var gaugeOptions = {
+        chart: {
+            type: 'solidgauge'
         },
-        labels: {
-            y: 16
-        }
-    },
 
-    plotOptions: {
-        solidgauge: {
-            dataLabels: {
-                enabled: false
+        title: null,
+
+        pane: {
+            center: ['50%', '85%'],
+            size: '140%',
+            startAngle: -90,
+            endAngle: 90,
+            background: {
+                backgroundColor:
+                    Highcharts.defaultOptions.legend.backgroundColor || '#EEE',
+                innerRadius: '60%',
+                outerRadius: '100%',
+                shape: 'arc'
             }
+        },
+
+        exporting: {
+            enabled: false
+        },
+
+        tooltip: {
+            enabled: false
+        },
+
+        // the value axis
+        yAxis: {
+            stops: [
+                [0.1, '#55BF3B'], // green
+                [0.5, '#DDDF0D'], // yellow
+                [0.9, '#DF5353'] // red
+            ],
+            lineWidth: 0,
+            minorTickInterval: null,
+            tickPixelInterval: null,
+            tickWidth: 0,
+            title: {
+                y: -70
+            },
+            labels: {
+                y: 16
+            }
+        },
+
+        plotOptions: {
+            solidgauge: {
+                dataLabels: {
+                    y: 5,
+                    borderWidth: 0,
+                    useHTML: true
+                }
+            }
+        }
+    };
+
+    window.gauges["te"] = getGauge('gauge_te', gaugeOptions, -10, 40, "Temperature", "&deg;C");
+    window.gauges["rh"] = getGauge('gauge_rh', gaugeOptions, 0, 100, "RH", "%");
+    window.gauges["bp"] = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Pressure", "hPa");
+
+    window.charts["ws"] = getWindbarbChart('chart_ws');
+
+    loadFromCache();
+
+    function getGauge(id, options, min, max, label, units) {
+        var c = Highcharts.chart(id, Highcharts.merge(options, {
+            yAxis: {
+                min: min,
+                max: max,
+                title: {
+                    text: ""
+                }
+            },
+
+            credits: {
+                enabled: false
+            },
+
+            series: [{
+                name: label,
+                data: [0],
+                dataLabels: {
+                    format: '<div style="text-align:center"><span style="font-size:25px;color:' +
+                        ((Highcharts.theme && Highcharts.theme.contrastTextColor) || 'black') + '">{y}</span><br/>' +
+                        '<span style="font-size:12px;color:silver">' + units + '</span></div>'
+                },
+                tooltip: {
+                    valueSuffix: ' ' + units
+                }
+            }]
+        }));
+        return c;
+    }
+
+    function getWindbarbChart(key) {
+        var c = Highcharts.chart(key, {
+            title: {
+                text: ''
+            },
+            chart: {
+                height: 300,
+            },
+            xAxis: {
+                type: 'datetime',
+                offset: 40
+            },
+            series: [{
+                type: 'windbarb',
+                data: [],
+                name: 'Wind',
+                color: Highcharts.getOptions().colors[1],
+                showInLegend: false,
+                tooltip: {
+                    valueSuffix: ' m/s'
+                }
+            }, {
+                type: 'area',
+                keys: ['x', 'y', 'rotation'], // rotation is not used here
+                data: [],
+                name: 'Wind speed',
+                tooltip: {
+                    valueSuffix: ' m/s'
+                }
+            }],
+            credits: { enabled: false }
+        });
+        return c;
+    }
+
+    function loadFromCache() {
+        // TODO: Load gauge values from cache
+
+        // Load Wind from cache
+        var wbChart = window.charts["ws"]
+        var wsCache = window.realtimeData["ws"];
+        var wdCache = window.realtimeData["wd"];
+        if (wsCache != null && wdCache != null) {
+            var bb = document.querySelector('#chart_ws').getBoundingClientRect();
+            width = bb.right - bb.left;
+
+            if (wsCache.length == wdCache.length) {
+                for (var i = 0; i < wsCache.length; i++) {
+                    var ws = wsCache[i];
+                    var wd = wdCache[i];
+                    //TODO:We need to limit the number of points in the wind barb based on the width of the container
+                    wbChart.series[0].addPoint([wd[0], ws[1], wd[1]], false, false, false);
+                    wbChart.series[1].addPoint([wd[0], ws[1], wd[1]], false, false, false);
+                }
+            }
+            wbChart.redraw(true);
         }
     }
-};
 
-
-var gaugeTemp = getGauge('gauge_te', gaugeOptions, -10, 40, "Temperature", "&deg;C");
-var gaugeRH = getGauge('gauge_rh', gaugeOptions, 0, 100, "RH", "%");
-var gaugeBP = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Pressure", "hPa");
-var gaugeWS = getGauge('gauge_ws', gaugeOptions, 0, 30, "Wind Speed", "m/s");
-var gaugeWD = getCompass('gauge_wd', gaugeOptions, -10, 40, "Wind Direction", "&deg;N");
-
-window.gauges["te"] = gaugeTemp;
-window.gauges["rh"] = gaugeRH;
-window.gauges["bp"] = gaugeBP;
-window.gauges["ws"] = gaugeWS;
-window.gauges["wd"] = gaugeWD;
-
-function getGauge(id, options, min, max, label, units){
-  var c = Highcharts.chart(id, Highcharts.merge(options, {
-      yAxis: {
-          min: min,
-          max: max,
-          title: {
-              text: ""
-          }
-      },
-
-      credits: {
-          enabled: false
-      },
-
-      series: [{
-          name: label,
-          data: [0],
-          dataLabels: {
-              format:
-                  '<div style="text-align:center">' +
-                  '<span style="font-size:30px">{y}</span><br/>' +
-                  '<span style="font-size:15px;opacity:0.4">' + units + '</span>' +
-                  '</div>'
-          },
-          tooltip: {
-              valueSuffix: ' ' + units
-          }
-      }]
-  }));
-  return c;
-}
-
-function getCompass(id, options, min, max, label, units) {
-    var c = Highcharts.chart(id, {
-        chart: {
-            type: 'gauge',
-            plotBackgroundColor: null,
-            plotBackgroundImage: null,
-            plotBorderWidth: 0,
-            height: '100%'
-        },
-
-        title: {
-            text: ''
-        },
-        credits: {
-          enabled: false
-        },
-        pane: {
-            startAngle: 0,
-            endAngle: 360,
-            background: [{
-                borderWidth: 1,
-                outerRadius: '50%'
-            }, {
-                backgroundColor: {
-                    linearGradient: {
-                        x1: 0,
-                        y1: 0,
-                        x2: 0,
-                        y2: 1
-                    },
-                    stops: [
-                        [0, '#FFF'],
-                        [1, '#333']
-                    ]
-                },
-                borderWidth: 1,
-                outerRadius: '100%'
-            }, {
-                backgroundColor: {
-                    linearGradient: {
-                        x1: 0,
-                        y1: 0,
-                        x2: 0,
-                        y2: 1
-                    },
-                    stops: [
-                        [0, '#333'],
-                        [1, '#FFF']
-                    ]
-                },
-                borderWidth: 4,
-                outerRadius: '10%'
-            }, {
-                // default background
-            }, {
-                backgroundColor: '#DDD',
-                borderWidth: 4,
-                outerRadius: '102%',
-                innerRadius: '100%'
-            }]
-        },
-        // the value axis
-        yAxis: [{
-            title: {
-                text: '',
-            },
-            min: 0,
-            max: 360,
-            lineColor: '#333',
-            offset: -10,
-            tickInterval: 20,
-            tickWidth: 2,
-            tickPosition: 'outside',
-            tickLength: 10,
-            tickColor: '#333',
-            minorTickInterval: 5,
-            minorTickWidth: 1,
-            minorTickLength: 10,
-            minorTickPosition: 'outside',
-            minorTickColor: '#666',
-            labels: {
-                step: 1,
-                distance: -12,
-                rotation: 'auto'
-            },
-        }, {
-            title: {
-                text: '',
-            },
-            type: 'category',
-            categories: ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW', 'N'],
-            min: 0,
-            max: 8,
-            lineColor: '#ddd',
-            offset: -50,
-            tickInterval: 1,
-            tickWidth: 1,
-            tickPosition: 'outside',
-            tickLength: 40, // =50-10
-            tickColor: '#ddd',
-            minorTickInterval: 1,
-            minorTickWidth: 0,
-            minorTickLength: 50,
-            minorTickPosition: 'inside',
-            minorTickColor: '#0f0',
-            labels: {
-                step: 1,
-                distance: 2,
-                rotation: 'auto'
-            },
-            endOnTick: true,
-        }, {
-            type: 'number',
-            title: {
-                text: '',
-            },
-            labels: {
-                enabled: false,
-            },
-            min: 0,
-            max: 12,
-            lineColor: '#ddd',
-            offset: -50,
-            tickInterval: 10,
-            tickWidth: 1,
-            tickPosition: 'inside',
-            tickLength: 45,
-            tickColor: '#ddd',
-            minorTickWidth: 0,
-            endOnTick: false,
-        }],
-
-        series: [{
-            name: '',
-            yAxis: 0,
-            data: [0],
-            dial: {
-                radius: '88%',
-                baseWidth: 10,
-                baseLength: '0%',
-                rearLength: 0,
-                borderWidth: 1,
-                borderColor: '#9A0000',
-                backgroundColor: '#CC0000',
-            },
-            tooltip: {
-                valueSuffix: '&deg;'
-            },
-            dataLabels: {
-                enabled: false
-            }
-        }, {
-            name: '',
-            data: [0],
-            yAxis: 0,
-            dial: {
-                radius: '-88%',
-                baseWidth: 10,
-                baseLength: '0%',
-                rearLength: 0,
-                borderWidth: 1,
-                borderColor: '#1B4684',
-                backgroundColor: '#3465A4',
-            },
-            tooltip: {
-                valueSuffix: '&deg;'
-            },
-            dataLabels: {
-                enabled: false
-            }
-        }]
-    });
-    return c;
-}
 </script>

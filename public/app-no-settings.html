@@ -5,16 +5,10 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-summary"><span
                     data-feather="home"></span>Summary</a>
-            <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-realtime"><span
-                    data-feather="clock"></span>Realtime</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-te"><span
                     data-feather="thermometer"></span>Temperature</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wi"><span
                     data-feather="wind"></span>Wind</a>
-            <!--
-                        <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-wd"><span
-                                data-feather="compass"></span>Wind Direction</a>
-            -->
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-rh"><span
                     data-feather="droplet"></span>RH</a>
             <a class="list-group-item list-group-item-action list-group-item-light p-3" id="link-bp"><span
@@ -36,7 +30,6 @@
         </nav>
         <!-- Page content-->
         <div id="main-body" class="container">
-            <!--        <div id="main-body">-->
         </div>
     </div>
 </div>
@@ -101,14 +94,6 @@
         /* create event handler that loads content into main area when navigation link is clicked */
         $('#link-summary').click(function () {
             $('#main-body').load(document.location.pathname + 'summary.html', null, function (data, status, jqXGR) {
-                // callback function
-                feather.replace();
-            });
-            autoCloseSidebar();
-        });
-
-        $('#link-realtime').click(function () {
-            $('#main-body').load(document.location.pathname + 'realtime.html', null, function (data, status, jqXGR) {
                 // callback function
                 feather.replace();
             });
