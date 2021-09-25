@@ -79,7 +79,12 @@
             if (dirBin > 15) { dirBin = dirBin - 16; }              // Should be modulus?
             binData[speedBin].data[dirBin] += pctPerPoint;
         }
-
+        for (i = 0; i < binData.length; i++) {
+            for (j = 0; j < binData[i].data.length; j++){
+                binData[i].data[j] = Math.round(binData[i].data[j]);
+            }
+        }
+    
         Highcharts.chart('chart-windrose', {
             title: {
                 text: ''
