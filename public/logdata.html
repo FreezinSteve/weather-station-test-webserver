@@ -141,12 +141,14 @@
         lastLog = Math.floor(moduleDateTime / 60000);
       }
     } else {
-      // Check to see if we're on the next 10 minute interval
-      var thisLog = Math.floor(moduleDateTime / 60000);
-      if (lastLog != thisLog) {
-        lastLog = thisLog;
-        // Load new data
-        loadData();
+      if (window.logChannelId !== "") {
+        // Check to see if we're on the next 10 minute interval
+        var thisLog = Math.floor(moduleDateTime / 60000);
+        if (lastLog != thisLog) {
+          lastLog = thisLog;
+          // Load new data
+          loadData();
+        }
       }
     }
   }, 1000);
