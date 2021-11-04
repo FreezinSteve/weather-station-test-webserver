@@ -17,7 +17,7 @@
     </div>
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
         <div class="card">
-            <h5 class="card-header">Pressure</h5>
+            <h5 class="card-header">Station Pressure</h5>
             <div class="card-body">
                 <div id="gauge_bp" style="height: 200px"></div>
             </div>
@@ -108,7 +108,7 @@
 
     window.gauges["te"] = getGauge('gauge_te', gaugeOptions, -10, 40, "Temperature", "&deg;C");
     window.gauges["rh"] = getGauge('gauge_rh', gaugeOptions, 0, 100, "RH", "%");
-    window.gauges["bp"] = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Pressure", "hPa");
+    window.gauges["bp"] = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Station Pressure", "hPa");
 
     window.charts["ws"] = getWindbarbChart('chart_ws');
 

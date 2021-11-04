@@ -44,29 +44,17 @@
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            var settings = this.responseText;
+            var settings = JSON.parse(this.responseText);
             if (settings) {
-                var lines = settings.split("\n");
-                var i = 0;
-                // We don't return the password as this would expose it via the API
-                for (var line of lines) {
-                    if (i == 0) {
-                        document.getElementById("settings-ssid").value = line;
-                    } else if (i == 1) {
-                        document.getElementById("settings-ipaddr").value = line;
-                    } else if (i == 2) {
-                        document.getElementById("settings-gatewayaddr").value = line;
-                    } else if (i == 3) {
-                        document.getElementById("settings-proxyaddr").value = line;
-                    } else if (i == 4) {
-                        document.getElementById("settings-utcoffset").value = line;
-                    }
-                    i++;
-                }
-            } else {
-                document.getElementById("settings-proxyaddr").value = "0.0.0.0";
-                document.getElementById("settings-utcoffset").value = "720";
+                document.getElementById("settings-ssid").value = settings["ssid"];
+                document.getElementById("settings-ipaddr").value = settings["ipaddr"];
+                document.getElementById("settings-gatewayaddr").value = settings["gatewayaddr"];
+                document.getElementById("settings-proxyaddr").value = settings["proxyaddr"];
+                document.getElementById("settings-utcoffset").value = settings["utcoffset"];
             }
+        } else {
+            document.getElementById("settings-proxyaddr").value = "0.0.0.0";
+            document.getElementById("settings-utcoffset").value = "720";
         }
     };
     xhttp.open("GET", 'read-settings', true);
@@ -100,21 +88,18 @@
                 }
             }
         };
-        var payload = document.getElementById("settings-ssid").value;
-        payload += "\n";
-        payload += document.getElementById("settings-password").value;
-        payload += "\n";
-        payload += document.getElementById("settings-ipaddr").value;
-        payload += "\n";
-        payload += document.getElementById("settings-gatewayaddr").value;
-        payload += "\n";
-        payload += document.getElementById("settings-proxyaddr").value;
-        payload += "\n";
-        payload += document.getElementById("settings-utcoffset").value;
-        payload += "\n";
+        var payload = {
+            "ssid": document.getElementById("settings-ssid").value,
+            "password": document.getElementById("settings-password").value,
+            "ipaddr": document.getElementById("settings-ipaddr").value,
+            "gatewayaddr": document.getElementById("settings-gatewayaddr").value,
+            "proxyaddr": document.getElementById("settings-proxyaddr").value,
+            "utcoffset": document.getElementById("settings-utcoffset").value
+        };
+
         xhttpSubmit.open("POST", "update-settings", true);
-        xhttpSubmit.setRequestHeader("Content-Type", "text/plain;charset=UTF-8");
-        xhttpSubmit.send(payload);
+        xhttpSubmit.setRequestHeader("Content-Type", "application/json");
+        xhttpSubmit.send(JSON.stringify(payload));
     }
 
     function reboot() {

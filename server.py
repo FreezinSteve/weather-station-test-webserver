@@ -25,6 +25,7 @@ class Server(BaseHTTPRequestHandler):
             post_body = self.rfile.read(content_len)
             handler.set_response(str(post_body))
             handler.setStatus(200)
+            print("update-settings")
         elif self.path == "/reboot":
             handler = StringResponseHandler()
             handler.set_response(str("Module rebooting"))
