@@ -5,9 +5,9 @@
     var xhttpWS = new XMLHttpRequest();
     xhttpWS.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            var csvWS = this.responseText;        
+            var csvWS = this.responseText;
             var xhttpWG = new XMLHttpRequest();
-            xhttpWG.onreadystatechange = function() {
+            xhttpWG.onreadystatechange = function () {
                 if (this.readyState == 4 && this.status == 200) {
                     var csvWG = this.responseText;
                     var xhttpWD = new XMLHttpRequest();
@@ -44,7 +44,7 @@
     }
     xhttpWS.open("GET", 'sensor?id=ws' + '&day=0', true);
     xhttpWS.send();
-    
+
     function loadCharts(windData) {
         // Limit the number of barb points
         var barbData = [];
@@ -58,9 +58,16 @@
         var windSpeedBins = 5;
         var windSpeedBinRes = 3;
         for (i = 0; i < windSpeedBins; i++) {
+            var binName;
+            if (i < (windSpeedBins - 1)) {
+                binName = (i * windSpeedBinRes).toString() + '-' + ((i + 1) * windSpeedBinRes).toString() + 'm/s';
+            }
+            else {
+                binName = '>' + (i * windSpeedBinRes).toString() + 'm/s';
+            }
             binData.push(
                 {
-                    name: ((i + 1) * windSpeedBinRes).toString() + 'm/s',
+                    name: binName,
                     data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
                 }
             );
@@ -80,11 +87,11 @@
             binData[speedBin].data[dirBin] += pctPerPoint;
         }
         for (i = 0; i < binData.length; i++) {
-            for (j = 0; j < binData[i].data.length; j++){
+            for (j = 0; j < binData[i].data.length; j++) {
                 binData[i].data[j] = Math.round(binData[i].data[j]);
             }
         }
-    
+
         Highcharts.chart('chart-windrose', {
             title: {
                 text: ''
