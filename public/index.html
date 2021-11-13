@@ -56,6 +56,39 @@
 
     var moduleDateTime;
     //==========================================================
+    // Date/Time helpers
+    const months = [
+        'January',
+        'February',
+        'March',
+        'April',
+        'May',
+        'June',
+        'July',
+        'August',
+        'September',
+        'October',
+        'November',
+        'December'
+    ];
+    const days = [
+        'Sun',
+        'Mon',
+        'Tue',
+        'Wed',
+        'Thu',
+        'Fri',
+        'Sat'
+    ];
+    // Format date/time e.g Fri 13/10/2021
+    function formatDate(dateTime) {
+        var dayName = days[dateTime.getDay()];
+        var day = dateTime.getDate();
+        var month = dateTime.getMonth() + 1;
+        var year = dateTime.getFullYear();
+        return dayName + ' ' + day.toString() + '/' + month.toString() + '/' + year.toString(); 
+    }
+    //==========================================================
     function getNextSource() {
         var source = sources[idx];
         var req = new XMLHttpRequest();
@@ -157,7 +190,7 @@
         } else if (id == "rh") {
             return ["RH", "%"];
         } else if (id == "bp") {
-            return ["MSL Pressure", "hPa"];
+            return ["Station Pressure", "hPa"];
         } else {
             return ["Unknown", ""];
         }
@@ -210,6 +243,11 @@
                 logChannelId = "";
             });
         }
+        $('#link-download').click(function () {
+            $('#main-body').load('download.html');
+            logChannelId = "";
+            autoCloseSidebar();
+        });
     }
     //====================================================
     function runRealTimeDataUpdate() {

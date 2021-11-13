@@ -1,4 +1,17 @@
 <div id="chart-logdata" class="container"></div>
+<div>
+  <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+    <div class="container-fluid">
+      <button class="btn btn-outline-primary" id="chart-nav-back"><i data-feather="rewind"
+          onclick="chartNavBack()"></i></button>
+      <div>
+        <h5 id="chart-data-date"></h5>
+      </div>
+      <button class="btn btn-outline-primary" id="chart-nav-forward"><i data-feather="fast-forward"
+          onclick="chartNavForward()"></i></button>
+    </div>
+  </nav>
+</div>
 <div id="logdata-summary" hidden class="container mt-5">
   <div class="row">
     <div class="col-md-12">
@@ -45,13 +58,16 @@
 </div>
 
 <script>
+  feather.replace();
+
   var channel = getChannelById(window.logChannelId);
+  var day = 0;
   var chartT = new Highcharts.Chart({
     chart: {
       renderTo: 'chart-logdata',
       zoomType: 'x'
     },
-    title: { text: 'Log Data' },
+    title: { text: channel[0] },
     series: [{
       showInLegend: false,
       data: []
@@ -105,7 +121,7 @@
           chartT.series[0].addPoint([x, y], false, false, false);
         }
         chartT.redraw(true);
-
+        document.getElementById("chart-data-date").innerHTML = getDataDate(minTime);
         // Update max / min display
         if (min != Number.POSITIVE_INFINITY) {
           document.getElementById("logdata-mindate").innerHTML = new Date(minTime).toLocaleString("en-NZ");
@@ -125,9 +141,40 @@
         document.getElementById("logdata-summary").hidden = false;
       }
     };
-    xhttp.open("GET", 'sensor?id=' + window.logChannelId + '&day=0', true);
+    xhttp.open("GET", 'sensor?id=' + window.logChannelId + '&day=' + day.toString(), true);
     xhttp.send();
   }
+
+  function getDataDate(minTime) {
+    if (day == 0) {
+      return "Last 24 Hrs";
+    } else {
+      var date = new Date(minTime);
+      return formatDate(date);
+    }
+  }
+
+  function chartNavBack() {
+    day++;
+    if (day >= 7) {
+      day = 7;
+      document.getElementById("chart-nav-back").style.visibility = 'hidden';
+    }
+    document.getElementById("chart-nav-forward").style.visibility = 'visible';
+    loadData();
+  }
+
+  function chartNavForward() {
+    day--;
+    if (day <= 0) {
+      day = 0;
+      document.getElementById("chart-nav-forward").style.visibility = 'hidden';
+    }
+    document.getElementById("chart-nav-back").style.visibility = 'visible';
+    loadData();
+  }
+
+  document.getElementById("chart-nav-forward").style.visibility = 'hidden';
 
   // Load data now
   loadData();
@@ -138,19 +185,21 @@
     if (lastLog == 0) {
       // Initialise the lastLog variable
       if (moduleDateTime > 0) {
-        lastLog = Math.floor(moduleDateTime / 60000);
+        lastLog = Math.floor(moduleDateTime / 600000);
       }
     } else {
       if (window.logChannelId !== "") {
         // Check to see if we're on the next 10 minute interval
-        var thisLog = Math.floor(moduleDateTime / 60000);
+        var thisLog = Math.floor(moduleDateTime / 600000);
         if (lastLog != thisLog) {
           lastLog = thisLog;
-          // Load new data
-          loadData();
+          if (day == 0) {
+            // Load new data
+            loadData();
+          }
         }
       }
     }
   }, 1000);
-
+//# sourceURL=logdata.html
 </script>
