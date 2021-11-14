@@ -1,33 +1,179 @@
 <form>
+    <p>The ESP8266 weather station stores up to 7 days of data internal flash memory.</p>
     <div class="input-group mb-3">
         <div class="input-group-prepend">
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-temperature">
+                <input type="checkbox" id="download-check-temperature" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-temperature">Temperature</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-windspeed">
+                <input type="checkbox" id="download-check-windspeed" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-windspeed">Wind Speed</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-winddirection">
+                <input type="checkbox" id="download-check-winddirection" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-winddirection">Wind Direction</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-gustspeed">
+                <input type="checkbox" id="download-check-gustspeed" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-gustspeed">Gust Speed</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-gustdirection">
+                <input type="checkbox" id="download-check-gustdirection" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-gustdirection">Gust Direction</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-pressure">
+                <input type="checkbox" id="download-check-pressure" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-pressure">Station Pressure</label>
             </div>
             <div class="input-group-text">
-                <input type="checkbox" id="download-check-rh">
+                <input type="checkbox" id="download-check-rh" onclick="checkEnableDownload()">
                 <label class="form-check-label" for="download-check-rh">RH</label>
             </div>
         </div>
+        <div class="input-group mb-3">
+            <button id="download-button" type="button" onclick="startDownloadData()" class="btn btn-primary mt-3"
+                disabled="true">Download</button>
+        </div>
+    </div>
 </form>
+<div class="progress progress-striped active">
+    <div id="download-progress-bar" class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+        aria-valuemax="100">
+    </div>
+</div>
+<script>
+    var downloadTemp = document.getElementById("download-check-temperature");
+    var downloadWindSpeed = document.getElementById("download-check-windspeed");
+    var downloadWindDirection = document.getElementById("download-check-winddirection");
+    var downloadGustSpeed = document.getElementById("download-check-gustspeed");
+    var downloadGustDirection = document.getElementById("download-check-gustdirection");
+    var downloadPressure = document.getElementById("download-check-pressure");
+    var downloadRH = document.getElementById("download-check-rh");
+    var downloadButton = document.getElementById("download-button");
+
+    var downloadSensors = [];
+    var downloadSensorIndex = 0;
+    var downloadDay = 7;    // Start at oldest data 
+    var downloadData = {};
+
+    function checkEnableDownload() {
+        if (downloadTemp.checked || downloadWindSpeed.checked
+            || downloadWindDirection.checked || downloadGustSpeed.checked
+            || downloadGustDirection.checked || downloadPressure.checked || downloadRH.checked) {
+            downloadButton.disabled = false;
+        } else {
+            downloadButton.disabled = true;
+        }
+    }
+
+    function startDownloadData() {
+        // Load selected sensor array
+        if (downloadTemp.checked) {
+            downloadSensors.push('te');
+        }
+        if (downloadWindSpeed.checked) {
+            downloadSensors.push('ws');
+        }
+        if (downloadWindDirection.checked) {
+            downloadSensors.push('wd');
+        }
+        if (downloadGustSpeed.checked) {
+            downloadSensors.push('gs');
+        }
+        if (downloadGustDirection.checked) {
+            downloadSensors.push('gd');
+        }
+        if (downloadPressure.checked) {
+            downloadSensors.push('bp');
+        }
+        if (downloadRH.checked) {
+            downloadSensors.push('rh');
+        }
+        // initialise the data dictionary
+        for (var s of downloadSensors) {
+            downloadData[s] = [];
+        }
+        // Get the data
+        getNextItem();
+    }
+
+    function getNextItem() {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                var csv = this.responseText;
+                var lines = csv.split("\n");
+                var key = downloadSensors[downloadSensorIndex];
+                for (var line of lines) {
+                    var item = line.split(",");
+                    var x = new Date(item[0]).getTime();
+                    var y = parseFloat(item[1]);
+                    downloadData[key].push([x, y]);
+                }
+                downloadDay--;
+                if (downloadDay < 0) {
+                    downloadDay = 7;
+                    downloadSensorIndex++;
+                    if (downloadSensorIndex < downloadSensors.length) {
+                        getNextItem();
+                    } else {
+                        processData();
+                    }
+                } else {
+                    getNextItem();
+                }
+            }
+        };
+        xhttp.open("GET", 'sensor?id=' + downloadSensors[downloadSensorIndex] + '&day=' + downloadDay.toString(), true);
+        xhttp.send();
+        var steps = (7 - downloadDay) + (7 * downloadSensorIndex);
+        var totalSteps = downloadSensors.length * 7;
+        var pct = steps * 100 / totalSteps;
+        $('.progress-bar').css('width', pct + '%').attr('aria-valuenow', pct);
+    }
+
+    function processData() {
+        // Get the header
+        var header = "Date/Time,";
+        var units = ","
+        for (var i = 0; i < downloadSensors.length; i++) {
+            var key = downloadSensors[i];
+            var chan = getChannelById(key);
+            header += $("<textarea/>").html(chan[0]).text();
+            units += $("<textarea/>").html(chan[1]).text();
+            if (i != downloadSensors.length - 1) {
+                header += ",";
+                units += ",";
+            }
+        }
+        var csvData = header + "\r\n" + units + "\r\n";
+        // Now load the data
+
+        
+        saveData(csvData);
+    }
+
+    function saveData(csvData) {
+        var filename = "PB100Data.csv";
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(csvData));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        // Remove the transition
+        var elem = document.getElementById("download-progress-bar");
+        elem.style.transition = 'none';
+        elem.style.webkitTransition = 'none'
+        $('.progress-bar').css('width', '0%').attr('aria-valuenow', '0');
+        // Restore the transition after 500ms
+        setTimeout(function () {
+            elem.style.transition = '';
+            elem.style.webkitTransition = ''
+        }, 500);
+    }
+
+//# sourceURL=download.html
+</script>
