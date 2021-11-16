@@ -94,7 +94,7 @@
                 }
             );
         }
-        var pctPerPoint = windData.length / 100;        // Each data point represent 'x' percent of the total
+        var pctPerPoint = 100 / windData.length;        // Each data point represent 'x' percent of the total
         // Now bin the data
         for (i = 0; i < windData.length; i++) {
             var speedBin = Math.floor(windData[i][1] / windSpeedBinRes);        // each bin is windSpeedBinRes m/s
@@ -104,7 +104,7 @@
                 speedBin = 0;
             }
 
-            var dirBin = Math.floor(windData[i][2] / 22.5);        // each direction bin is 22.5 deg
+            var dirBin = Math.floor((windData[i][2] + 11.25) / 22.5);        // each direction bin is 22.5 deg, add 1/2 to round up
             if (dirBin > 15) { dirBin = dirBin - 16; }              // Should be modulus?
             binData[speedBin].data[dirBin] += pctPerPoint;
         }

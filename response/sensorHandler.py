@@ -83,7 +83,9 @@ class SensorHandler(RequestHandler):
                         val = floor
                     if val > ceil:
                         val = ceil
-                    data = data + str(timestamp) + "," + str(round(val, 1)) + "\n"
+                    #if id == "wd":
+                    #    val = 350
+                    data = data + timestamp.replace(microsecond=0).isoformat() + "," + str(round(val, 1)) + "\n"
             self.contents = StringIO(data)
             if SensorHandler.temperature < 0:
                 SensorHandler.temperature += 10

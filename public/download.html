@@ -1,5 +1,6 @@
 <form>
-    <p>The ESP8266 weather station stores up to 7 days of data internal flash memory.</p>
+    <p>The ESP8266 weather station stores around 7 days of data internal flash memory. Select the channels to download
+        the data for </p>
     <div class="input-group mb-3">
         <div class="input-group-prepend">
             <div class="input-group-text">
@@ -52,10 +53,10 @@
     var downloadRH = document.getElementById("download-check-rh");
     var downloadButton = document.getElementById("download-button");
 
-    var downloadSensors = [];
-    var downloadSensorIndex = 0;
-    var downloadDay = 7;    // Start at oldest data 
-    var downloadData = {};
+    var downloadSensors;
+    var downloadSensorIndex;
+    var downloadDay;
+    var downloadData;
 
     function checkEnableDownload() {
         if (downloadTemp.checked || downloadWindSpeed.checked
@@ -68,6 +69,12 @@
     }
 
     function startDownloadData() {
+        downloadSensors = [];
+        downloadSensorIndex = 0;
+        downloadDay = 7;    // Start at oldest data 
+        downloadData = [];
+
+        downloadData.push([]);  // Date time
         // Load selected sensor array
         if (downloadTemp.checked) {
             downloadSensors.push('te');
@@ -90,9 +97,9 @@
         if (downloadRH.checked) {
             downloadSensors.push('rh');
         }
-        // initialise the data dictionary
+        // initialise the data array
         for (var s of downloadSensors) {
-            downloadData[s] = [];
+            downloadData.push([]);
         }
         // Get the data
         getNextItem();
@@ -103,13 +110,44 @@
         xhttp.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 var csv = this.responseText;
+                csv = csv.trim();
                 var lines = csv.split("\n");
-                var key = downloadSensors[downloadSensorIndex];
+                var dataDate;
+                var item;
+                var timestamp;
+                if (downloadDay == 0) {
+                    // File is 24hr rolling buffer. We need to find the line where the new days data starts (midnight)
+                    item = lines[0].split(",")
+                    timestamp = new Date(item[0]);
+                    // Check if the first line is midnight
+                    if (timestamp.getHours() == 0 && timestamp.getMinutes() == 0) {
+                        // On midnight
+                        dataDate = timestamp.getDay();      // Day of month
+                    } else {
+                        timestamp.setDate(timestamp.getDate() + 1);
+                        dataDate = timestamp.getDay();
+                    }
+                }
                 for (var line of lines) {
-                    var item = line.split(",");
-                    var x = new Date(item[0]).getTime();
-                    var y = parseFloat(item[1]);
-                    downloadData[key].push([x, y]);
+                    item = line.split(",")
+                    if (downloadDay > 0) {
+                        // Files are midnight to midnight
+                        if (downloadSensorIndex == 0) {
+                            // Capture date/time
+                            downloadData[0].push(item[0].replace("T", " "));  // Remove "T" from ISO format so that Excel plays nicely);
+                        }
+                        downloadData[downloadSensorIndex + 1].push(item[1]);
+                    } else {
+                        // File is 24hr rolling buffer. We need to find the line where the new days data starts (midnight)
+                        timestamp = new Date(item[0]);
+                        if (timestamp.getDay() == dataDate) {
+                            if (downloadSensorIndex == 0) {
+                                // Capture date/time
+                                downloadData[0].push(item[0].replace("T", " "));  // Remove "T" from ISO format so that Excel plays nicely);
+                            }
+                            downloadData[downloadSensorIndex + 1].push(item[1]);
+                        }
+                    }
                 }
                 downloadDay--;
                 if (downloadDay < 0) {
@@ -140,8 +178,8 @@
         for (var i = 0; i < downloadSensors.length; i++) {
             var key = downloadSensors[i];
             var chan = getChannelById(key);
-            header += $("<textarea/>").html(chan[0]).text();
-            units += $("<textarea/>").html(chan[1]).text();
+            header += chan[0];
+            units += chan[1].replace("&deg;", "deg");  // Too lazy for figure out UTF-8 encoding
             if (i != downloadSensors.length - 1) {
                 header += ",";
                 units += ",";
@@ -149,8 +187,14 @@
         }
         var csvData = header + "\r\n" + units + "\r\n";
         // Now load the data
+        for (var row = 0; row < downloadData[0].length; row++) {
+            csvData += downloadData[0][row];
+            for (var col = 1; col < downloadData.length; col++) {
+                csvData += "," + downloadData[col][row];
+            }
+            csvData += "\r\n";
+        }
 
-        
         saveData(csvData);
     }
 
