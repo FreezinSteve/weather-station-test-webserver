@@ -34,7 +34,8 @@
         </div>
         <div class="input-group mb-3">
             <button id="download-button" type="button" onclick="startDownloadData()" class="btn btn-primary mt-3"
-                disabled="true">Download</button>
+                disabled="true"><span id="download-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none">
+                </span>Download</button>
         </div>
     </div>
 </form>
@@ -71,7 +72,7 @@
     function startDownloadData() {
         downloadSensors = [];
         downloadSensorIndex = 0;
-        downloadDay = 7;    // Start at oldest data 
+        downloadDay = 6;    // Start at oldest data 
         downloadData = [];
 
         downloadData.push([]);  // Date time
@@ -101,8 +102,11 @@
         for (var s of downloadSensors) {
             downloadData.push([]);
         }
+
+        document.getElementById("download-spinner").style.display="inline-block";
         // Get the data
         getNextItem();
+
     }
 
     function getNextItem() {
@@ -149,18 +153,10 @@
                         }
                     }
                 }
-                downloadDay--;
-                if (downloadDay < 0) {
-                    downloadDay = 7;
-                    downloadSensorIndex++;
-                    if (downloadSensorIndex < downloadSensors.length) {
-                        getNextItem();
-                    } else {
-                        processData();
-                    }
-                } else {
-                    getNextItem();
-                }
+                getNextDay();
+            } else if (this.readyState == 4 && this.status == 404) {
+                // No data for this day
+                getNextDay();
             }
         };
         xhttp.open("GET", 'sensor?id=' + downloadSensors[downloadSensorIndex] + '&day=' + downloadDay.toString(), true);
@@ -171,6 +167,21 @@
         $('.progress-bar').css('width', pct + '%').attr('aria-valuenow', pct);
     }
 
+    function getNextDay() {
+        downloadDay--;
+        if (downloadDay < 0) {
+            downloadDay = 7;
+            downloadSensorIndex++;
+            if (downloadSensorIndex < downloadSensors.length) {
+                getNextItem();
+            } else {
+                processData();
+            }
+        } else {
+            getNextItem();
+        }
+
+    }
     function processData() {
         // Get the header
         var header = "Date/Time,";
@@ -207,12 +218,15 @@
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
+        
+        document.getElementById("download-spinner").style.display="none";
+
         // Remove the transition
         var elem = document.getElementById("download-progress-bar");
         elem.style.transition = 'none';
         elem.style.webkitTransition = 'none'
         $('.progress-bar').css('width', '0%').attr('aria-valuenow', '0');
-        // Restore the transition after 500ms
+        // Restore the transition after 500ms 
         setTimeout(function () {
             elem.style.transition = '';
             elem.style.webkitTransition = ''

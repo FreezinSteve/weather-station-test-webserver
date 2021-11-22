@@ -69,7 +69,8 @@ class Server(BaseHTTPRequestHandler):
             handler.set_response("Module rebooting")
         elif self.path == "/read-settings":
             handler = StringResponseHandler()
-            handler.set_response("Casa de lima\n192.168.1.100\n192.168.1.250\n192.168.1.130\n720\n")
+            handler.set_response(
+                '{"ssid":"Casa de Lima","ipaddr":"192.168.1.100","gatewayaddr":"192.168.1.250","proxyaddr":"192.168.1.130","utcoffset":"720"}')
         else:
             # Static files in public folder
             handler = StaticHandler()
@@ -80,7 +81,7 @@ class Server(BaseHTTPRequestHandler):
 
     def handle_http(self, handler):
         status_code = handler.getStatus()
-        #time.sleep(0.5)
+        # time.sleep(0.5)
         self.send_response(status_code)
 
         if status_code is 200:
