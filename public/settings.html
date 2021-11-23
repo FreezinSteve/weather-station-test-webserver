@@ -33,7 +33,9 @@
             <input class="form-control" type="number" name="utcoffset" id="settings-utcoffset" placeholder="720">
         </div>
         <h6 class="mt-3">Data can also be pushed though to the NZ Metservice via the UK met office World of Weather</h6>
-        <a href="https://about.metservice.com/our-company/your-weather/add-your-own-weather-station" target="_blank" class="btn btn-primary btn-sm mb-3" tabindex="-1" role="button" aria-disabled="false">Add a Weather Station</a>
+        <a href="https://about.metservice.com/our-company/your-weather/add-your-own-weather-station" target="_blank"
+            class="btn btn-primary btn-sm mb-3" tabindex="-1" role="button" aria-disabled="false">Add a Weather
+            Station</a>
         <div class="form-group col-md-6">
             <label for="settings-wowid">World of weather site ID</label>
             <input class="form-control" type="text" name="wowid" id="settings-wowid" placeholder="">
@@ -42,8 +44,9 @@
             <label for="settings-wowkey">World of weather site key</label>
             <input class="form-control" type="text" name="wowkey" id="settings-wowkey" placeholder="">
         </div>
-    </div>  
-    <button id="settings-save" type="button" onclick="submitSettings()" class="btn btn-primary mt-5  mb-3" disabled="true">
+    </div>
+    <button id="settings-save" type="button" onclick="submitSettings()" class="btn btn-primary mt-5  mb-3"
+        disabled="true">
         Save
     </button>
     <button type="button" class="btn btn-primary mt-5 mb-3" onclick="reboot()">Reboot</button>
@@ -54,15 +57,17 @@
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
         if (this.readyState == 4 && this.status == 200) {
-            var settings = JSON.parse(this.responseText);
-            if (settings) {
-                document.getElementById("settings-ssid").value = settings["ssid"];
-                document.getElementById("settings-ipaddr").value = settings["ipaddr"];
-                document.getElementById("settings-gatewayaddr").value = settings["gatewayaddr"];
-                document.getElementById("settings-proxyaddr").value = settings["proxyaddr"];
-                document.getElementById("settings-utcoffset").value = settings["utcoffset"];
-                document.getElementById("settings-wowid").value = settings["wowid"];
-                document.getElementById("settings-wowkey").value = settings["wowkey"];
+            if (this.responseText.length > 0) {
+                var settings = JSON.parse(this.responseText);
+                if (settings) {
+                    document.getElementById("settings-ssid").value = settings["ssid"];
+                    document.getElementById("settings-ipaddr").value = settings["ipaddr"];
+                    document.getElementById("settings-gatewayaddr").value = settings["gatewayaddr"];
+                    document.getElementById("settings-proxyaddr").value = settings["proxyaddr"];
+                    document.getElementById("settings-utcoffset").value = settings["utcoffset"];
+                    document.getElementById("settings-wowid").value = settings["wowid"];
+                    document.getElementById("settings-wowkey").value = settings["wowkey"];
+                }
             }
         } else {
             document.getElementById("settings-proxyaddr").value = "0.0.0.0";
@@ -71,10 +76,7 @@
     };
     xhttp.open("GET", 'read-settings', true);
     xhttp.send();
-</script>
 
-<!-- Event callbacks-->
-<script>
     // Enable the Save button when SSID and password are set.
     function enableSave() {
         var ssid = document.getElementById("settings-ssid").value;
@@ -107,8 +109,8 @@
             "gatewayaddr": document.getElementById("settings-gatewayaddr").value,
             "proxyaddr": document.getElementById("settings-proxyaddr").value,
             "utcoffset": document.getElementById("settings-utcoffset").value,
-            "wowid": document.getElementById("settings-wowid"),
-            "wowkey": document.getElementById("settings-wowkey")
+            "wowid": document.getElementById("settings-wowid").value,
+            "wowkey": document.getElementById("settings-wowkey").value
         };
 
         xhttpSubmit.open("POST", "update-settings", true);

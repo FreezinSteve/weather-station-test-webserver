@@ -92,57 +92,79 @@
     },
     credits: { enabled: false }
   });
-  function loadData() {
+
+  function getData() {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function () {
       if (this.readyState == 4 && this.status == 200) {
-        // Erase all old data
-        while (chartT.series[0].data.length > 0) {
-          chartT.series[0].data[0].remove(false) //false = don't redraw
-        }
+        eraseOldData();
         var csv = this.responseText;
-        var lines = csv.split("\n");
-        var min = Number.POSITIVE_INFINITY;
-        var minTime;
-        var max = Number.NEGATIVE_INFINITY;
-        var maxTime;
-        for (var line of lines) {
-          var item = line.split(",");
-          var x = new Date(item[0]).getTime();
-          var y = parseFloat(item[1]);
-          if (y < min) {
-            min = y;
-            minTime = x;
-          }
-          if (y > max) {
-            max = y;
-            maxTime = x;
-          }
-          chartT.series[0].addPoint([x, y], false, false, false);
-        }
-        chartT.redraw(true);
-        document.getElementById("chart-data-date").innerHTML = getDataDate(minTime);
-        // Update max / min display
-        if (min != Number.POSITIVE_INFINITY) {
-          document.getElementById("logdata-mindate").innerHTML = new Date(minTime).toLocaleString("en-NZ");
-          document.getElementById("logdata-minval").innerHTML = min.toString() + "&nbsp;" + channel[1];
+        if (csv.length == 0) {
+          showNoData();
         } else {
-          document.getElementById("logdata-mindate").innerHTML = "N/A";
-          document.getElementById("logdata-minval").innerHTML = "";
+          loadCSVData(csv);
         }
-
-        if (max != Number.NEGATIVE_INFINITY) {
-          document.getElementById("logdata-maxdate").innerHTML = new Date(maxTime).toLocaleString("en-NZ");
-          document.getElementById("logdata-maxval").innerHTML = max.toString() + "&nbsp;" + channel[1];
-        } else {
-          document.getElementById("logdata-maxdate").innerHTML = "N/A";
-          document.getElementById("logdata-maxval").innerHTML = "";
-        }
-        document.getElementById("logdata-summary").hidden = false;
       }
     };
     xhttp.open("GET", 'sensor?id=' + window.logChannelId + '&day=' + day.toString(), true);
     xhttp.send();
+  }
+
+  function eraseOldData() {
+    while (chartT.series[0].data.length > 0) {
+      chartT.series[0].data[0].remove(false) //false = don't redraw
+    }
+  }
+
+  function showNoData() {
+    // No data for the selected day
+    chartT.redraw(true);
+    document.getElementById("logdata-summary").hidden = true;
+    document.getElementById("chart-data-date").innerHTML = "NO DATA AVAILABLE";
+    // Setting style doesn't change layout
+    document.getElementById("chart-nav-back").style.visibility = 'hidden';
+  }
+
+  // Load data to chart
+  function loadCSVData(csv) {
+    var lines = csv.split("\n");
+    var min = Number.POSITIVE_INFINITY;
+    var minTime;
+    var max = Number.NEGATIVE_INFINITY;
+    var maxTime;
+    for (var line of lines) {
+      var item = line.split(",");
+      var x = new Date(item[0]).getTime();
+      var y = parseFloat(item[1]);
+      if (y < min) {
+        min = y;
+        minTime = x;
+      }
+      if (y > max) {
+        max = y;
+        maxTime = x;
+      }
+      chartT.series[0].addPoint([x, y], false, false, false);
+    }
+    chartT.redraw(true);
+    document.getElementById("chart-data-date").innerHTML = getDataDate(minTime);
+    // Update max / min display
+    if (min != Number.POSITIVE_INFINITY) {
+      document.getElementById("logdata-mindate").innerHTML = new Date(minTime).toLocaleString("en-NZ");
+      document.getElementById("logdata-minval").innerHTML = min.toString() + "&nbsp;" + channel[1];
+    } else {
+      document.getElementById("logdata-mindate").innerHTML = "N/A";
+      document.getElementById("logdata-minval").innerHTML = "";
+    }
+
+    if (max != Number.NEGATIVE_INFINITY) {
+      document.getElementById("logdata-maxdate").innerHTML = new Date(maxTime).toLocaleString("en-NZ");
+      document.getElementById("logdata-maxval").innerHTML = max.toString() + "&nbsp;" + channel[1];
+    } else {
+      document.getElementById("logdata-maxdate").innerHTML = "N/A";
+      document.getElementById("logdata-maxval").innerHTML = "";
+    }
+    document.getElementById("logdata-summary").hidden = false;
   }
 
   function getDataDate(minTime) {
@@ -161,7 +183,7 @@
       document.getElementById("chart-nav-back").style.visibility = 'hidden';
     }
     document.getElementById("chart-nav-forward").style.visibility = 'visible';
-    loadData();
+    getData();
   }
 
   function chartNavForward() {
@@ -171,13 +193,13 @@
       document.getElementById("chart-nav-forward").style.visibility = 'hidden';
     }
     document.getElementById("chart-nav-back").style.visibility = 'visible';
-    loadData();
+    getData();
   }
 
   document.getElementById("chart-nav-forward").style.visibility = 'hidden';
 
   // Load data now
-  loadData();
+  getData();
 
   // Update on the 10 minute log interval
   var lastLog = 0;
@@ -195,7 +217,7 @@
           lastLog = thisLog;
           if (day == 0) {
             // Load new data
-            loadData();
+            getData();
           }
         }
       }

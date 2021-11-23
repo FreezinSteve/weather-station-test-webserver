@@ -12,6 +12,7 @@ class StaticHandler(RequestHandler):
             ".css": "text/css",
             ".jpg": "image/jpeg",
             ".png": "image/png",
+            ".ico": "image/x-icon",
             "notfound": "text/plain"
         }
 
@@ -22,7 +23,7 @@ class StaticHandler(RequestHandler):
         try:
             print("public{}".format(file_path))
 
-            if extension in (".jpg", ".jpeg", ".png"):
+            if extension in (".jpg", ".jpeg", ".png", ".ico"):
                 self.contents = open("public{}".format(file_path), 'rb')
             else:
                 self.contents = open("public{}".format(file_path), 'r')

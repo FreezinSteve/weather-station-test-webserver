@@ -31,9 +31,13 @@ class SensorHandler(RequestHandler):
                 data = str(round(SensorHandler.temperature, 1))
             else:
                 filepath = os.getcwd() + "/data/" + id + "." + day
-                f = open(filepath, 'r')
-                data = f.read()
-                f.close()
+                if os.path.exists(filepath):
+                    f = open(filepath, 'r')
+                    data = f.read()
+                    f.close()
+                else:
+                    data = ""
+
             self.contents = StringIO(data)
             if SensorHandler.temperature < 0:
                 SensorHandler.temperature += 10

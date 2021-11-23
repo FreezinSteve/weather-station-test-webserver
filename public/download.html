@@ -1,6 +1,6 @@
 <form>
-    <p>The ESP8266 weather station stores around 7 days of data internal flash memory. Select the channels to download
-        the data for </p>
+    <p>This station can store around 7 days of data on the internal flash memory. Select the channels to download the
+        data for </p>
     <div class="input-group mb-3">
         <div class="input-group-prepend">
             <div class="input-group-text">
@@ -34,7 +34,8 @@
         </div>
         <div class="input-group mb-3">
             <button id="download-button" type="button" onclick="startDownloadData()" class="btn btn-primary mt-3"
-                disabled="true"><span id="download-spinner" class="spinner-border spinner-border-sm" role="status" aria-hidden="true" style="display: none">
+                disabled="true"><span id="download-spinner" class="spinner-border spinner-border-sm" role="status"
+                    aria-hidden="true" style="display: none">
                 </span>Download</button>
         </div>
     </div>
@@ -103,7 +104,7 @@
             downloadData.push([]);
         }
 
-        document.getElementById("download-spinner").style.display="inline-block";
+        document.getElementById("download-spinner").style.display = "inline-block";
         // Get the data
         getNextItem();
 
@@ -115,47 +116,49 @@
             if (this.readyState == 4 && this.status == 200) {
                 var csv = this.responseText;
                 csv = csv.trim();
-                var lines = csv.split("\n");
-                var dataDate;
-                var item;
-                var timestamp;
-                if (downloadDay == 0) {
-                    // File is 24hr rolling buffer. We need to find the line where the new days data starts (midnight)
-                    item = lines[0].split(",")
-                    timestamp = new Date(item[0]);
-                    // Check if the first line is midnight
-                    if (timestamp.getHours() == 0 && timestamp.getMinutes() == 0) {
-                        // On midnight
-                        dataDate = timestamp.getDay();      // Day of month
-                    } else {
-                        timestamp.setDate(timestamp.getDate() + 1);
-                        dataDate = timestamp.getDay();
-                    }
-                }
-                for (var line of lines) {
-                    item = line.split(",")
-                    if (downloadDay > 0) {
-                        // Files are midnight to midnight
-                        if (downloadSensorIndex == 0) {
-                            // Capture date/time
-                            downloadData[0].push(item[0].replace("T", " "));  // Remove "T" from ISO format so that Excel plays nicely);
-                        }
-                        downloadData[downloadSensorIndex + 1].push(item[1]);
-                    } else {
+                if (csv.length > 0) {
+                    var lines = csv.split("\n");
+                    var dataDate;
+                    var item;
+                    var timestamp;
+                    if (downloadDay == 0) {
                         // File is 24hr rolling buffer. We need to find the line where the new days data starts (midnight)
+                        item = lines[0].split(",")
                         timestamp = new Date(item[0]);
-                        if (timestamp.getDay() == dataDate) {
+                        // Check if the first line is midnight
+                        if (timestamp.getHours() == 0 && timestamp.getMinutes() == 0) {
+                            // On midnight
+                            dataDate = timestamp.getDay();      // Day of month
+                        } else {
+                            timestamp.setDate(timestamp.getDate() + 1);
+                            dataDate = timestamp.getDay();
+                        }
+                    }
+                    for (var line of lines) {
+                        item = line.split(",")
+                        if (downloadDay > 0) {
+                            // Files are midnight to midnight
                             if (downloadSensorIndex == 0) {
                                 // Capture date/time
                                 downloadData[0].push(item[0].replace("T", " "));  // Remove "T" from ISO format so that Excel plays nicely);
                             }
                             downloadData[downloadSensorIndex + 1].push(item[1]);
+                        } else {
+                            // File is 24hr rolling buffer. We need to find the line where the new days data starts (midnight)
+                            timestamp = new Date(item[0]);
+                            if (timestamp.getDay() == dataDate) {
+                                if (downloadSensorIndex == 0) {
+                                    // Capture date/time
+                                    downloadData[0].push(item[0].replace("T", " "));  // Remove "T" from ISO format so that Excel plays nicely);
+                                }
+                                downloadData[downloadSensorIndex + 1].push(item[1]);
+                            }
                         }
                     }
                 }
                 getNextDay();
             } else if (this.readyState == 4 && this.status == 404) {
-                // No data for this day
+                // Unknown error - try next day
                 getNextDay();
             }
         };
@@ -182,7 +185,11 @@
         }
 
     }
+
     function processData() {
+        // TODO: Check that there's the same number of data items for each sensor. 
+        // if a days data for one sensor is not returned then the date/times won't
+        // line up correctly 
         // Get the header
         var header = "Date/Time,";
         var units = ","
@@ -205,7 +212,6 @@
             }
             csvData += "\r\n";
         }
-
         saveData(csvData);
     }
 
@@ -218,8 +224,8 @@
         document.body.appendChild(element);
         element.click();
         document.body.removeChild(element);
-        
-        document.getElementById("download-spinner").style.display="none";
+
+        document.getElementById("download-spinner").style.display = "none";
 
         // Remove the transition
         var elem = document.getElementById("download-progress-bar");
