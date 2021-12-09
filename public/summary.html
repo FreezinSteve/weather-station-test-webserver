@@ -1,6 +1,6 @@
 <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 row-cols-xl-5">
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
-        <div class="card">
+        <div class="card" onclick="window.loadLoggedTemperature()">
             <h5 class="card-header">Temperature</h5>
             <div class="card-body">
                 <div id="gauge_te" style="height: 200px"></div>
@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
-        <div class="card">
+        <div class="card"  onclick="window.loadLoggedRH()">
             <h5 class="card-header">RH</h5>
             <div class="card-body">
                 <div id="gauge_rh" style="height: 200px"></div>
@@ -16,7 +16,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
-        <div class="card">
+        <div class="card"  onclick="window.loadLoggedPressure()">
             <h5 class="card-header">Station Pressure</h5>
             <div class="card-body">
                 <div id="gauge_bp" style="height: 200px"></div>
@@ -25,7 +25,7 @@
     </div>
 </div>
 <!-- WIND -->
-<div class="row row-cols-1">
+<div class="row row-cols-1"  onclick="window.loadLoggedWind()">
     <div class="row card-header">
         <div class="col-auto">
             <ul class="nav flex-nowrap">
@@ -112,7 +112,8 @@
 
     window.charts["ws"] = getWindbarbChart('chart_ws');
 
-    loadFromCache();
+    // Automatically load all values from realtime data cache
+    updateDisplay();
 
     function getGauge(id, options, min, max, label, units) {
         var c = Highcharts.chart(id, Highcharts.merge(options, {
@@ -179,28 +180,5 @@
         return c;
     }
 
-    function loadFromCache() {
-        // TODO: Load gauge values from cache
-
-        // Load Wind from cache
-        var wbChart = window.charts["ws"]
-        var wsCache = window.realtimeData["ws"];
-        var wdCache = window.realtimeData["wd"];
-        if (wsCache != null && wdCache != null) {
-            var bb = document.querySelector('#chart_ws').getBoundingClientRect();
-            width = bb.right - bb.left;
-
-            if (wsCache.length == wdCache.length) {
-                for (var i = 0; i < wsCache.length; i++) {
-                    var ws = wsCache[i];
-                    var wd = wdCache[i];
-                    //TODO:We need to limit the number of points in the wind barb based on the width of the container
-                    wbChart.series[0].addPoint([wd[0], ws[1], wd[1]], false, false, false);
-                    wbChart.series[1].addPoint([wd[0], ws[1], wd[1]], false, false, false);
-                }
-            }
-            wbChart.redraw(true);
-        }
-    }
 //# sourceURL=summary.html
 </script>

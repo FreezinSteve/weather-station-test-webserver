@@ -87,7 +87,7 @@
         var day = dateTime.getDate();
         var month = dateTime.getMonth() + 1;
         var year = dateTime.getFullYear();
-        return dayName + ' ' + day.toString() + '/' + month.toString() + '/' + year.toString(); 
+        return dayName + ' ' + day.toString() + '/' + month.toString() + '/' + year.toString();
     }
     //==========================================================
     function getNextSource() {
@@ -170,11 +170,14 @@
 
         $(document).ready(function () {
 
-            autoLoadSummary();
+            loadSummary();
             initClickHandlers();
-            runRealTimeDataUpdate();
-            initViewPortChangeHandler();
+            // Get the status as soon as possible
             getStatus();
+            /* Fast update timer, update current instantaneous reading */
+            setInterval(getStatus, 5000);
+
+            initViewPortChangeHandler();
         });
     }
 
@@ -201,12 +204,28 @@
         }
     }
     //====================================================
-    function autoLoadSummary() {
+    function loadSummary() {
         // Automatically load the summary page
         $('#main-body').load('summary.html', null, function (data, status, jqXGR) {
             // callback function
             feather.replace();
         });
+    }
+    function loadLoggedTemperature() {
+        $('#main-body').load('logdata.html');
+        logChannelId = "te";
+    }
+    function loadLoggedWind() {
+        $('#main-body').load('logdatawind.html');
+        logChannelId = "wi";
+    }
+    function loadLoggedRH() {
+        $('#main-body').load('logdata.html');
+        logChannelId = "rh";
+    }
+    function loadLoggedPressure() {
+        $('#main-body').load('logdata.html');
+        logChannelId = "bp";
     }
     //====================================================
     function initClickHandlers() {
@@ -221,23 +240,19 @@
         });
 
         $('#link-te').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "te";
+            loadLoggedTemperature();
             autoCloseSidebar();
         });
         $('#link-wi').click(function () {
-            $('#main-body').load('logdatawind.html');
-            logChannelId = "wi";
+            loadLoggedWind();
             autoCloseSidebar();
         });
         $('#link-rh').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "rh";
+            loadLoggedRH();
             autoCloseSidebar();
         });
         $('#link-bp').click(function () {
-            $('#main-body').load('logdata.html');
-            logChannelId = "bp";
+            loadLoggedPressure();
             autoCloseSidebar();
         });
         // Settings blocked if external 
@@ -255,70 +270,106 @@
         });
     }
     //====================================================
-    function runRealTimeDataUpdate() {
-        /* Fast update timer, update current instantaneous reading */
-        var scantimer = setInterval(getStatus, 5000);
-    }
-    //====================================================
     function getStatus() {
         var xhttpTime = new XMLHttpRequest();
         xhttpTime.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
-                var status = JSON.parse(this.responseText);
-                for (key in status) {
-                    if (status.hasOwnProperty(key)) {
-                        var id = "latest_" + key;
-                        if (document.getElementById(id) !== null) {
-                            document.getElementById(id).innerHTML = status[key];
-                        }
-                        var x = new Date(status["dt"]).getTime();
-                        moduleDateTime = x;
-                        var y = parseFloat(status[key]);
-
-                        // Update any charts
-                        if (key in charts) {
-                            var c = charts[key];
-                            if (key != "ws" && key != "wd") {
-                                c.series[0].addPoint([x, y], false, false, false);
-                                c.redraw(true);
-                            } else if (key == "ws") {
-                                var ws = y;
-                                var wd = parseFloat(status["wd"]);
-                                c.series[0].addPoint([x, ws, wd], false, false, false);
-                                c.series[1].addPoint([x, ws, wd], false, false, false);
-                                if (c.series[0].data.length > 60) {
-                                    c.series[0].data[0].remove(false, false);
-                                }
-                                if (c.series[1].data.length > 60) {
-                                    c.series[1].data[0].remove(false, false);
-                                }
-
-                                c.redraw(true);
-                            }
-                        }
-
-                        // Update any gauges
-                        if (key in gauges) {
-                            var g = gauges[key];
-                            point = g.series[0].points[0];
-                            point.update(Math.round(y * 10) / 10);
-                        }
-
-                        // Update data cache
-                        if (!(key in realtimeData)) {
-                            realtimeData[key] = [];
-                        }
-                        var len = realtimeData[key].push([x, y]);
-                        if (len > 60) {
-                            realtimeData[key].shift();
-                        }
-                    }
-                }
+                loadStatusToCache(this.responseText);
+                updateDisplay();
             }
         };
         xhttpTime.open("GET", "status", true);
         xhttpTime.send();
     }
+    //====================================================
+    // Parse JSON from status response a load to cache
+    function loadStatusToCache(json) {
+        var status = JSON.parse(json);
+        for (key in status) {
+            if (status.hasOwnProperty(key)) {
+                var x = new Date(status["dt"]).getTime();
+                var y = parseFloat(status[key]);
+
+                // Keep a global reference of the current date/time
+                moduleDateTime = x;
+
+                // Update data cache
+                if (!(key in realtimeData)) {
+                    realtimeData[key] = [];
+                }
+                // Push date, value as float, and raw text for each display
+                var len = realtimeData[key].push([x, y, status[key]]);
+                if (len > 60) {
+                    realtimeData[key].shift();
+                }
+            }
+        }
+    }
+
+    //====================================================
+    // Update latest data values from the most recent value in the 
+    // data cache   
+    function updateDisplay() {
+        for (key in realtimeData) {
+            var data = realtimeData[key];
+            var latest = data[data.length - 1];
+            var x = latest[0];
+
+            var y = latest[1];
+            var val = latest[2];
+
+            // Update any Lastest elements
+            // Summary wind speed and direction still use latest_xx elements
+            var id = "latest_" + key;
+            if (document.getElementById(id) !== null) {
+                document.getElementById(id).innerHTML = val;
+            }
+
+            // Update any charts. ws and wd are a special case
+            if (key != "ws" && key != "wd") {
+                if (key in charts) {
+                    var c = charts[key]
+                    c.series[0].addPoint([x, y], false, false, false);
+                    c.redraw(true);
+                }
+            }
+            // Update any gauges
+            if (key in gauges) {
+                var g = gauges[key];
+                point = g.series[0].points[0];
+                point.update(Math.round(y * 10) / 10);
+            }
+        }
+        // Handle ws and wd 
+        if ("ws" in realtimeData && "wd" in realtimeData) {
+            var wbChart = charts["ws"]
+            var wsCache = realtimeData["ws"];
+            var wdCache = realtimeData["wd"];
+            // If there is no data in the chart yet, load all data from cache
+            if (wbChart.series[0].data.length == 0 && wsCache.length > 1) {
+                for (var i = 0; i < wsCache.length; i++) {
+                    var ws = wsCache[i];
+                    var wd = wdCache[i];
+                    wbChart.series[0].addPoint([wd[0], ws[1], wd[1]], false, false, false);
+                    wbChart.series[1].addPoint([wd[0], ws[1], wd[1]], false, false, false);
+                }
+            } else {
+                var wsLatest = wsCache[wsCache.length - 1];
+                var wdLatest = wdCache[wdCache.length - 1];
+                // Push latest data to chart
+                wbChart.series[0].addPoint([wsLatest[0], wsLatest[1], wsLatest[1]], false, false, false);
+                wbChart.series[1].addPoint([wsLatest[0], wsLatest[1], wsLatest[1]], false, false, false);
+                if (wbChart.series[0].data.length > 60) {
+                    wbChart.series[0].data[0].remove(false, false);
+                }
+                if (wbChart.series[1].data.length > 60) {
+                    wbChart.series[1].data[0].remove(false, false);
+                }
+            }
+            wbChart.redraw(true);
+        }
+    }
+
     //====================================================
     function getViewport() {
         const width = Math.max(

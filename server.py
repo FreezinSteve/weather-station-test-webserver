@@ -62,6 +62,7 @@ class Server(BaseHTTPRequestHandler):
             status["wd"] = str(random.randint(0, 359))
             status["rh"] = str(random.randint(0, 1000) / 10)
             status["bp"] = str(random.randint(9800, 11000) / 10)
+            status["bp3hc"]= str(random.randint(-10,10) / 10)
             json_msg = json.dumps(status)
             handler.set_response(json_msg)
         elif self.path == "/reboot":
