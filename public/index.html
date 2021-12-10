@@ -17,17 +17,18 @@
         <h1 class="display-4">PB100</h1>
         <p class="lead">Loading components for application</p>
         <hr class="my-4">
-        <p id="progress">Loading...</p>
+        <p id="progress">Loading...</p>\
         <p id="errors"></p>
+        <div class="spinner-border text-primary" role="status"></div>
     </div>
 </body>
 <script>
+    var version = "1.01";
     window.onbeforeunload = function () {
         return "If you leave, real time data charts will be reset";
     }
     //=========================================================
     // Bootloader variables
-
     // Load the components 1 by 1 so that we don't hammer the ESP
     // which can only handle 4 request at a time
     var sources = [
@@ -39,9 +40,9 @@
         "windbarb.js",
         "solid-gauge.js"
     ];
-    var idx = 0;
-    var downloadComplete = true;
+    var currFile = 0;
     var progress = document.getElementById("progress");
+    progress.innerHTML = "";
     var errors = document.getElementById("errors");
     //===========================================================
     // Main application variables
@@ -81,6 +82,10 @@
         'Fri',
         'Sat'
     ];
+
+    checkVersion();
+    getNextFile();
+
     // Format date/time e.g Fri 13/10/2021
     function formatDate(dateTime) {
         var dayName = days[dateTime.getDay()];
@@ -90,50 +95,67 @@
         return dayName + ' ' + day.toString() + '/' + month.toString() + '/' + year.toString();
     }
     //==========================================================
-    function getNextSource() {
-        var source = sources[idx];
-        var req = new XMLHttpRequest();
-        downloadComplete = false;
-        progress.innerHTML = "Downloading: " + source;
-        req.addEventListener('readystatechange', function (e) {
-            if (req.readyState == 4 && req.status == 200) {
-                // Downloading has finished
-                var script = document.createElement('script');
-                script.innerHTML = req.response;
-                document.body.appendChild(script);
-                downloadComplete = true;
-                idx++;
-            } else if (req.readyState == 4) {
-                // Failed
-                notifyFailed(source);
-            }
-        });
-
-        // progress percent of file
-        req.addEventListener('progress', function (e) {
-            if (e.lengthComputable === true) {
-                var download_percent = (e.loaded / e.total) * 100;
-                console.log(download_percent);
-            }
-        });
-
-        req.responseType = 'text';
-        req.open('GET', source);
-        req.send();
-    }
-
-    var ticktimer = setInterval(function () {
-        if (idx >= sources.length) {
-            clearInterval(ticktimer);
-            progress.innerHTML = "Starting application";
-            getMainPage();
+    function checkVersion() {
+        var storedVersion = localStorage.getItem("Version");
+        if (!storedVersion) {
+            localStorage.setItem("Version", version);
         } else {
-            if (downloadComplete) {
-                getNextSource();
+            if (version != storedVersion) {
+                // New version, erase old data
+                localStorage.clear();
+                localStorage.setItem("Version", version);
+                progress.innerHTML = "New version!<br>"
             }
         }
-    }, 250);
-
+    }
+    //==========================================================
+    function getNextFile() {
+        if (currFile < sources.length) {
+            getScriptResource(sources[currFile]);
+        } else {
+            // Wait 1/2 second before loading main page or it looks glitchy when loaded from cache
+            setTimeout(() => {
+                getMainPage();
+            }, 500);
+        }
+    }
+    //==========================================================
+    function getScriptResource(scriptFile) {
+        var data = localStorage.getItem(scriptFile);
+        if (!data) {
+            var req = new XMLHttpRequest();
+            progress.innerHTML += "Downloading: " + scriptFile + "<br>";
+            req.addEventListener('readystatechange', function (e) {
+                if (req.readyState == 4 && req.status == 200) {
+                    // Downloading has finished
+                    addScript(req.response);
+                    // save to local storage
+                    localStorage.setItem(scriptFile, req.response);
+                    currFile++;
+                    getNextFile();
+                } else if (req.readyState == 4) {
+                    // Failed
+                    notifyFailed(scriptFile);
+                    getNextFile();
+                }
+            });
+            req.responseType = 'text';
+            req.open('GET', scriptFile);
+            req.send();
+        } else {
+            progress.innerHTML += "Loaded from cache: " + scriptFile + "<br>";
+            addScript(data);
+            currFile++;
+            getNextFile();
+        }
+    }
+    //==========================================================
+    function addScript(js) {
+        var script = document.createElement('script');
+        script.innerHTML = js;
+        document.body.appendChild(script);
+    }
+    //==========================================================
     function getMainPage() {
         var xhttp = new XMLHttpRequest();
         xhttp.open('GET', 'app.html', true);
@@ -150,12 +172,12 @@
         };
         xhttp.send();
     }
-
+    //==========================================================
     function notifyFailed(source) {
         // Add to UI
         errors.innerHTML += "Error: Failed to load: " + source + "<br>";
     }
-
+    //====================================================
     // Run the main application
     function runApp() {
 
@@ -180,7 +202,6 @@
             initViewPortChangeHandler();
         });
     }
-
     //====================================================
     function getChannelById(id) {
         if (id == "te") {
@@ -211,18 +232,22 @@
             feather.replace();
         });
     }
+    //====================================================
     function loadLoggedTemperature() {
         $('#main-body').load('logdata.html');
         logChannelId = "te";
     }
+    //====================================================
     function loadLoggedWind() {
         $('#main-body').load('logdatawind.html');
         logChannelId = "wi";
     }
+    //====================================================
     function loadLoggedRH() {
         $('#main-body').load('logdata.html');
         logChannelId = "rh";
     }
+    //====================================================
     function loadLoggedPressure() {
         $('#main-body').load('logdata.html');
         logChannelId = "bp";
@@ -305,7 +330,6 @@
             }
         }
     }
-
     //====================================================
     // Update latest data values from the most recent value in the 
     // data cache   
@@ -319,10 +343,15 @@
             var val = latest[2];
 
             // Update any Lastest elements
-            // Summary wind speed and direction still use latest_xx elements
+            // global time, summary wind speed and direction still use latest_xx elements
             var id = "latest_" + key;
             if (document.getElementById(id) !== null) {
-                document.getElementById(id).innerHTML = val;
+                if (key == "dt") {
+                    // Remove "T" from ISO date/time
+                    document.getElementById(id).innerHTML = val.replace("T", " ");
+                } else {
+                    document.getElementById(id).innerHTML = val;
+                }
             }
 
             // Update any charts. ws and wd are a special case
@@ -340,6 +369,25 @@
                 point.update(Math.round(y * 10) / 10);
             }
         }
+        // Handle change in bp
+        if (document.getElementById("latest_bp3hc") !== null) {
+            if ("bp3hc" in realtimeData) {
+                var data = realtimeData["bp3hc"];
+                var change = data[data.length - 1][1];
+                if (change < 0) {
+                    document.getElementById("bp_up").style.display = 'none';
+                    document.getElementById("bp_down").style.display = 'block';
+                } else if (change > 0) {
+                    document.getElementById("bp_up").style.display = 'block';
+                    document.getElementById("bp_down").style.display = 'none';
+                } else {
+                    document.getElementById("bp_up").style.display = 'none';
+                    document.getElementById("bp_down").style.display = 'none';
+                    document.getElementById("latest_bp3hc").innerHTML="No change";
+                }
+            }
+        }
+
         // Handle ws and wd 
         if ("ws" in realtimeData && "wd" in realtimeData) {
             var wbChart = charts["ws"]
@@ -369,7 +417,6 @@
             wbChart.redraw(true);
         }
     }
-
     //====================================================
     function getViewport() {
         const width = Math.max(

@@ -5,7 +5,7 @@ from os.path import isfile, join
 import subprocess
 
 source_path = "C:\\Users\\delimas\\PycharmProjects\\python-webserver-part-2\\public"
-dest_path = "C:\\Users\\delimas\\Documents\\Arduino\\ESP_Chart_Web_Server\\data"
+dest_path = "C:\\Users\\delimas\\Documents\\Arduino\\PB100WeatherStation\\data"
 gz_path = '"C:\\Program Files\\7-Zip\\7Z.exe"'
 
 # Remove existing files

@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
-        <div class="card"  onclick="window.loadLoggedRH()">
+        <div class="card" onclick="window.loadLoggedRH()">
             <h5 class="card-header">RH</h5>
             <div class="card-body">
                 <div id="gauge_rh" style="height: 200px"></div>
@@ -16,20 +16,31 @@
         </div>
     </div>
     <div class="col-lg-4 col-md-6 col-sm-9 mb-4">
-        <div class="card"  onclick="window.loadLoggedPressure()">
-            <h5 class="card-header">Station Pressure</h5>
-            <div class="card-body">
-                <div id="gauge_bp" style="height: 200px"></div>
-            </div>
+        <div class="card" onclick="window.loadLoggedPressure()">
+            <h5 class="card-header">
+                <div class="d-flex justify-content-between">
+                    <div>Station Pressure</div>
+                    <div class="d-flex">
+                        <div>3hr&nbsp</div>
+                        <div id="bp_up" data-feather="arrow-up"></div>
+                        <div id="bp_down" data-feather="arrow-down"></div>    
+                        <div id="latest_bp3hc">0.0</div>
+                    </div>
+                </div>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div id="gauge_bp" style="height: 200px"></div>
         </div>
     </div>
 </div>
+</div>
 <!-- WIND -->
-<div class="row row-cols-1"  onclick="window.loadLoggedWind()">
+<div class="row row-cols-1" onclick="window.loadLoggedWind()">
     <div class="row card-header">
         <div class="col-auto">
             <ul class="nav flex-nowrap">
-                <li class="p-2"><strong></strong>Wind Speed:</strong></li>
+                <li class="p-2"><strong>Wind Speed:</strong></li>
                 <li class="p-2" id="latest_ws">---</li>
                 <li class="p-2">m/s</li>
 
@@ -108,7 +119,7 @@
 
     window.gauges["te"] = getGauge('gauge_te', gaugeOptions, -10, 40, "Temperature", "&deg;C");
     window.gauges["rh"] = getGauge('gauge_rh', gaugeOptions, 0, 100, "RH", "%");
-    window.gauges["bp"] = getGauge('gauge_bp', gaugeOptions, 990, 1040, "Station Pressure", "hPa");
+    window.gauges["bp"] = getGauge('gauge_bp', gaugeOptions, 960, 1040, "Station Pressure", "hPa");
 
     window.charts["ws"] = getWindbarbChart('chart_ws');
 
