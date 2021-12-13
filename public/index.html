@@ -405,8 +405,8 @@
                 var wsLatest = wsCache[wsCache.length - 1];
                 var wdLatest = wdCache[wdCache.length - 1];
                 // Push latest data to chart
-                wbChart.series[0].addPoint([wsLatest[0], wsLatest[1], wsLatest[1]], false, false, false);
-                wbChart.series[1].addPoint([wsLatest[0], wsLatest[1], wsLatest[1]], false, false, false);
+                wbChart.series[0].addPoint([wdLatest[0], wsLatest[1], wdLatest[1]], false, false, false);
+                wbChart.series[1].addPoint([wdLatest[0], wsLatest[1], wdLatest[1]], false, false, false);
                 if (wbChart.series[0].data.length > 60) {
                     wbChart.series[0].data[0].remove(false, false);
                 }

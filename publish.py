@@ -4,7 +4,7 @@ from os import listdir
 from os.path import isfile, join
 import subprocess
 
-source_path = "C:\\Users\\delimas\\PycharmProjects\\python-webserver-part-2\\public"
+source_path = "C:\\Users\\delimas\\PycharmProjects\\PB100TestServer\\public"
 dest_path = "C:\\Users\\delimas\\Documents\\Arduino\\PB100WeatherStation\\data"
 gz_path = '"C:\\Program Files\\7-Zip\\7Z.exe"'
 

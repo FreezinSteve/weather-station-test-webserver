@@ -133,18 +133,24 @@
     var max = Number.NEGATIVE_INFINITY;
     var maxTime;
     for (var line of lines) {
-      var item = line.split(",");
-      var x = new Date(item[0]).getTime();
-      var y = parseFloat(item[1]);
-      if (y < min) {
-        min = y;
-        minTime = x;
+      // Filter out potential garbage
+      line = line.trim();
+      if (line.includes(",")) {
+        var item = line.split(",");
+        if (item[0].length > 0 && item[1].length > 0) {
+          var x = new Date(item[0]).getTime();
+          var y = parseFloat(item[1]);
+          if (y < min) {
+            min = y;
+            minTime = x;
+          }
+          if (y > max) {
+            max = y;
+            maxTime = x;
+          }
+          chartT.series[0].addPoint([x, y], false, false, false);
+        }
       }
-      if (y > max) {
-        max = y;
-        maxTime = x;
-      }
-      chartT.series[0].addPoint([x, y], false, false, false);
     }
     chartT.redraw(true);
     document.getElementById("chart-data-date").innerHTML = getDataDate(minTime);
