@@ -13,6 +13,8 @@ from datetime import datetime
 from urllib.parse import urlparse
 from urllib.parse import parse_qs
 
+import requests
+
 
 class Server(BaseHTTPRequestHandler):
     def do_HEAD(self):
@@ -55,15 +57,18 @@ class Server(BaseHTTPRequestHandler):
             handler.set_response(datetime.now().replace(microsecond=0).isoformat())
         elif self.path == "/status":
             handler = StringResponseHandler()
-            status = {}
-            status["dt"] = datetime.now().replace(microsecond=0).isoformat()
-            status["te"] = str(random.randint(0, 200) / 10)
-            status["ws"] = str(random.randint(0, 1000) / 10)
-            status["wd"] = str(random.randint(0, 359))
-            status["rh"] = str(random.randint(0, 1000) / 10)
-            status["bp"] = str(random.randint(9800, 11000) / 10)
-            status["bp3hc"]= str(random.randint(-10,10) / 10)
-            json_msg = json.dumps(status)
+            # status = {}
+            # status["dt"] = datetime.now().replace(microsecond=0).isoformat()
+            # status["te"] = str(random.randint(0, 200) / 10)
+            # status["ws"] = str(random.randint(0, 1000) / 10)
+            # status["wd"] = str(random.randint(0, 359))
+            # status["rh"] = str(random.randint(0, 1000) / 10)
+            # status["bp"] = str(random.randint(9800, 11000) / 10)
+            # status["bp3hc"]= str(random.randint(-10,10) / 10)
+            # json_msg = json.dumps(status)
+            r = requests.get("http://192.168.1.100/status")
+            #r = requests.get("http://delima.duckdns.org/status")
+            json_msg = r.content.decode('utf-8')
             handler.set_response(json_msg)
         elif self.path == "/reboot":
             handler = StringResponseHandler()

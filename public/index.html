@@ -23,10 +23,13 @@
     </div>
 </body>
 <script>
-    var version = "1.01";
+    var version = "1.04";
     window.onbeforeunload = function () {
-        return "If you leave, real time data charts will be reset";
+        {
+            return '';
+        }
     }
+
     //=========================================================
     // Bootloader variables
     // Load the components 1 by 1 so that we don't hammer the ESP
@@ -111,7 +114,7 @@
     //==========================================================
     function getNextFile() {
         if (currFile < sources.length) {
-            getScriptResource(sources[currFile]);
+            getCachedScript(sources[currFile]);
         } else {
             // Wait 1/2 second before loading main page or it looks glitchy when loaded from cache
             setTimeout(() => {
@@ -120,30 +123,30 @@
         }
     }
     //==========================================================
-    function getScriptResource(scriptFile) {
-        var data = localStorage.getItem(scriptFile);
+    function getCachedScript(cachedFile) {
+        var data = localStorage.getItem(cachedFile);
         if (!data) {
             var req = new XMLHttpRequest();
-            progress.innerHTML += "Downloading: " + scriptFile + "<br>";
+            progress.innerHTML += "Downloading: " + cachedFile + "<br>";
             req.addEventListener('readystatechange', function (e) {
                 if (req.readyState == 4 && req.status == 200) {
                     // Downloading has finished
                     addScript(req.response);
                     // save to local storage
-                    localStorage.setItem(scriptFile, req.response);
+                    localStorage.setItem(cachedFile, req.response);
                     currFile++;
                     getNextFile();
                 } else if (req.readyState == 4) {
                     // Failed
-                    notifyFailed(scriptFile);
+                    notifyFailed(cachedFile);
                     getNextFile();
                 }
             });
             req.responseType = 'text';
-            req.open('GET', scriptFile);
+            req.open('GET', cachedFile);
             req.send();
         } else {
-            progress.innerHTML += "Loaded from cache: " + scriptFile + "<br>";
+            progress.innerHTML += "Loaded from cache: " + cachedFile + "<br>";
             addScript(data);
             currFile++;
             getNextFile();
@@ -300,7 +303,7 @@
         xhttpTime.onreadystatechange = function () {
             if (this.readyState == 4 && this.status == 200) {
                 loadStatusToCache(this.responseText);
-                updateDisplay();
+                updateSummary();
             }
         };
         xhttpTime.open("GET", "status", true);
@@ -333,7 +336,7 @@
     //====================================================
     // Update latest data values from the most recent value in the 
     // data cache   
-    function updateDisplay() {
+    function updateSummary() {
         for (key in realtimeData) {
             var data = realtimeData[key];
             var latest = data[data.length - 1];
@@ -383,7 +386,7 @@
                 } else {
                     document.getElementById("bp_up").style.display = 'none';
                     document.getElementById("bp_down").style.display = 'none';
-                    document.getElementById("latest_bp3hc").innerHTML="No change";
+                    document.getElementById("latest_bp3hc").innerHTML = "No change";
                 }
             }
         }
@@ -416,6 +419,22 @@
             }
             wbChart.redraw(true);
         }
+    }
+
+    function getLatestValue(chanId) {
+        var data = realtimeData[chanId];
+        return data[data.length - 1][1];
+    }
+
+    function calcMSL(stationPressure, elevation, temperature) {
+        var msl = stationPressure * Math.pow((1 - ((0.0065 * elevation) / (temperature + 0.0065 * elevation + 273.15))), -5.257);
+        return msl;
+    }
+
+    function degToCompass(num) {
+        var val = Math.floor((num / 22.5) + 0.5);
+        var arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
+        return arr[(val % 16)];
     }
     //====================================================
     function getViewport() {

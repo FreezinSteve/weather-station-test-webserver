@@ -124,7 +124,7 @@
     window.charts["ws"] = getWindbarbChart('chart_ws');
 
     // Automatically load all values from realtime data cache
-    updateDisplay();
+    updateSummary();
 
     function getGauge(id, options, min, max, label, units) {
         var c = Highcharts.chart(id, Highcharts.merge(options, {
