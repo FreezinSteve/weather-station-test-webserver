@@ -32,17 +32,17 @@
             <label for="settings-utcoffset">UTC Offset (minutes)</label>
             <input class="form-control" type="number" name="utcoffset" id="settings-utcoffset" placeholder="720">
         </div>
-        <h6 class="mt-3">Data can also be pushed though to the NZ Metservice via the UK met office World of Weather</h6>
-        <a href="https://about.metservice.com/our-company/your-weather/add-your-own-weather-station" target="_blank"
+        <h6 class="mt-3">Data can also be pushed though to Weather Underground. Select "Other" for type</h6>
+        <a href="https://www.wunderground.com/member/devices/new" target="_blank"
             class="btn btn-primary btn-sm mb-3" tabindex="-1" role="button" aria-disabled="false">Add a Weather
             Station</a>
         <div class="form-group col-md-6">
-            <label for="settings-wowid">World of weather site ID</label>
-            <input class="form-control" type="text" name="wowid" id="settings-wowid" placeholder="">
+            <label for="settings-wuid">Weather Underground site ID</label>
+            <input class="form-control" type="text" name="wuid" id="settings-wuid" placeholder="">
         </div>
         <div class="form-group col-md-6">
-            <label for="settings-wowkey">World of weather site key</label>
-            <input class="form-control" type="text" name="wowkey" id="settings-wowkey" placeholder="">
+            <label for="settings-wukey">Weather Underground site key</label>
+            <input class="form-control" type="text" name="wukey" id="settings-wukey" placeholder="">
         </div>
     </div>
     <button id="settings-save" type="button" onclick="submitSettings()" class="btn btn-primary mt-5  mb-3"
@@ -65,8 +65,8 @@
                     document.getElementById("settings-gatewayaddr").value = settings["gatewayaddr"];
                     document.getElementById("settings-proxyaddr").value = settings["proxyaddr"];
                     document.getElementById("settings-utcoffset").value = settings["utcoffset"];
-                    document.getElementById("settings-wowid").value = settings["wowid"];
-                    document.getElementById("settings-wowkey").value = settings["wowkey"];
+                    document.getElementById("settings-wuid").value = settings["wuid"];
+                    document.getElementById("settings-wukey").value = settings["wukey"];
                 }
             }
         } else {
@@ -109,8 +109,8 @@
             "gatewayaddr": document.getElementById("settings-gatewayaddr").value,
             "proxyaddr": document.getElementById("settings-proxyaddr").value,
             "utcoffset": document.getElementById("settings-utcoffset").value,
-            "wowid": document.getElementById("settings-wowid").value,
-            "wowkey": document.getElementById("settings-wowkey").value
+            "wuid": document.getElementById("settings-wuid").value,
+            "wukey": document.getElementById("settings-wukey").value
         };
 
         xhttpSubmit.open("POST", "update-settings", true);

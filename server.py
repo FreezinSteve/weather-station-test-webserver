@@ -76,7 +76,7 @@ class Server(BaseHTTPRequestHandler):
         elif self.path == "/read-settings":
             handler = StringResponseHandler()
             handler.set_response(
-                '{"ssid":"Casa de Lima","ipaddr":"192.168.1.100","gatewayaddr":"192.168.1.250","proxyaddr":"192.168.1.130","utcoffset":"720","wowid":"", "wowkey":""}')
+                '{"ssid":"Casa de Lima","ipaddr":"192.168.1.100","gatewayaddr":"192.168.1.250","proxyaddr":"192.168.1.130","utcoffset":"720","wuid":"", "wukey":""}')
         else:
             # Static files in public folder
             handler = StaticHandler()
